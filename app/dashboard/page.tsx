@@ -261,6 +261,7 @@ export default function LandlordDashboardPage() {
       rating: 5.0,
       createdAt: new Date().toISOString(),
       landlordId: currentUser.id,
+      branchId: 'branch-1'
     });
 
     addToast('Đăng phòng trọ mới thành công!', 'success');
