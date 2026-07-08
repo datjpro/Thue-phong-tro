@@ -3,6 +3,7 @@
 import React, { useState, use, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import confetti from 'canvas-confetti';
 import {
   Wifi,
@@ -39,6 +40,16 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 
+// Import Room3DView dynamically to prevent SSR issues with three.js Canvas
+const Room3DView = dynamic(() => import('@/components/rooms/Room3DView'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] bg-card/30 border border-border/40 rounded-2xl flex items-center justify-center animate-pulse shadow-sm">
+      <p className="text-xs text-muted-foreground font-black tracking-widest uppercase">Đang tải mô hình 3D...</p>
+    </div>
+  )
+});
+
 export default function RoomDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id: roomId } = use(params);
@@ -59,6 +70,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'photos' | '3d'>('photos');
 
   // Form đặt lịch/giữ chỗ
   const [bookingType, setBookingType] = useState<'viewing' | 'deposit'>('viewing');
@@ -202,33 +214,64 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        {/* BỐ CỤC HÌNH ẢNH (GALLERY) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4.5 mb-10">
-          {/* Ảnh to bên trái */}
-          <div className="lg:col-span-8 aspect-[16/10] bg-muted rounded-2xl overflow-hidden border border-border/80 relative shadow-sm">
-            <img
-              src={room.images[activeImgIndex]}
-              alt={room.title}
-              onClick={() => setIsLightboxOpen(true)}
-              className="w-full h-full object-cover cursor-zoom-in hover:scale-[1.01] transition-transform duration-500"
-            />
-          </div>
-
-          {/* Cột ảnh nhỏ bên phải */}
-          <div className="lg:col-span-4 grid grid-cols-4 lg:grid-cols-2 gap-3.5 h-full">
-            {room.images.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImgIndex(idx)}
-                className={`relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all cursor-pointer shadow-sm ${
-                  activeImgIndex === idx ? 'border-primary scale-[0.98] ring-2 ring-primary/20' : 'border-border/60 opacity-70 hover:opacity-100'
-                }`}
-              >
-                <img src={img} alt="" className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+        {/* Lựa chọn chế độ xem hình ảnh / 3D */}
+        <div className="flex border-b border-border/40 mb-6 gap-2">
+          <button
+            onClick={() => setViewMode('photos')}
+            className={`px-4.5 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+              viewMode === 'photos'
+                ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Ảnh chụp thực tế
+          </button>
+          <button
+            onClick={() => setViewMode('3d')}
+            className={`px-4.5 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+              viewMode === '3d'
+                ? 'border-primary text-primary bg-primary/5 rounded-t-xl'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Mô phỏng 3D tương tác
+          </button>
         </div>
+
+        {viewMode === 'photos' ? (
+          /* BỐ CỤC HÌNH ẢNH (GALLERY) */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4.5 mb-10">
+            {/* Ảnh to bên trái */}
+            <div className="lg:col-span-8 aspect-[16/10] bg-muted rounded-2xl overflow-hidden border border-border/80 relative shadow-sm">
+              <img
+                src={room.images[activeImgIndex]}
+                alt={room.title}
+                onClick={() => setIsLightboxOpen(true)}
+                className="w-full h-full object-cover cursor-zoom-in hover:scale-[1.01] transition-transform duration-500"
+              />
+            </div>
+
+            {/* Cột ảnh nhỏ bên phải */}
+            <div className="lg:col-span-4 grid grid-cols-4 lg:grid-cols-2 gap-3.5 h-full">
+              {room.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImgIndex(idx)}
+                  className={`relative aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all cursor-pointer shadow-sm ${
+                    activeImgIndex === idx ? 'border-primary scale-[0.98] ring-2 ring-primary/20' : 'border-border/60 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* MÔ PHỎNG 3D THEO PHÒNG */
+          <div className="mb-10 w-full animate-fade-in">
+            <Room3DView room={room} />
+          </div>
+        )}
 
         {/* CHI TIẾT THÔNG TIN PHÒNG TRỌ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8.5 items-start">
