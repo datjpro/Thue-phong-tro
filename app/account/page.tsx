@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -30,6 +30,21 @@ import { Badge } from '@/components/ui/Badge';
 import { Room } from '@/data/rooms';
 
 export default function TenantAccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen bg-background">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <p className="text-xs font-black text-muted-foreground uppercase tracking-widest animate-pulse">Đang tải tài khoản...</p>
+        </div>
+      </div>
+    }>
+      <TenantAccountContent />
+    </Suspense>
+  );
+}
+
+function TenantAccountContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentUser, loginAs } = useAuth();
