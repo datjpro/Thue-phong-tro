@@ -3,42 +3,34 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Palette, Info, RefreshCw, Layout, Layers, HelpCircle } from 'lucide-react';
+import { Palette, Info, RefreshCw, Layout, Layers, Home } from 'lucide-react';
 import { Room } from '@/data/rooms';
 
 // Component con chứa mô hình 3D thực tế
 function RoomModel({
-  room,
+  type,
+  amenities,
   wallColor,
   bedColor,
   furnitureColor,
-  customWidth,
-  customLength,
-  customHeight
+  width,
+  length,
+  height
 }: {
-  room?: Room;
+  type: 'phong-tro' | 'chung-cu-mini' | 'o-ghep';
+  amenities: string[];
   wallColor: string;
   bedColor: string;
   furnitureColor: string;
-  customWidth?: number;
-  customLength?: number;
-  customHeight?: number;
+  width: number;
+  length: number;
+  height: number;
 }) {
-  // Tính kích thước căn phòng dựa trên diện tích room.area hoặc các thông số tùy biến
-  const area = room?.area || 25;
-  const type = room?.type || 'phong-tro';
-  const amenities = room?.amenities || [];
-
-  // Chiều rộng và dài tự động tính từ diện tích (clamped giữa 3.8 và 5.5)
-  const defaultDim = Math.max(3.8, Math.min(5.5, Math.sqrt(area) * 0.75));
-  const width = customWidth || defaultDim;
-  const length = customLength || defaultDim;
-  const height = customHeight || 2.8;
-
   // Tiện ích
   const hasAC = amenities.includes('dieu-hoa') || true;
-  const hasFridge = amenities.includes('tu-lanh') || true; // Hiện thị tủ lạnh cho đầy đủ
+  const hasFridge = amenities.includes('tu-lanh') || true;
   const hasWashingMachine = amenities.includes('may-giat');
+  const hasWardrobe = amenities.includes('tu-quan-ao') || true;
 
   return (
     <group position={[0, -height / 3, 0]} rotation={[0, -Math.PI / 4, 0]}>
@@ -75,40 +67,34 @@ function RoomModel({
       {/* 5. PHÒNG VỆ SINH KHÉP KÍN (NVS / Bathroom) ở góc sau bên trái */}
       <group>
         {/* Vách ngăn kính mờ góc Toilet */}
-        {/* Vách ngang */}
         <mesh position={[-width / 2 + 0.6, height / 2, -length / 2 + 1.25]} castShadow>
           <boxGeometry args={[1.2, height, 0.06]} />
           <meshStandardMaterial color="#b0bec5" transparent opacity={0.3} roughness={0.1} />
         </mesh>
-        {/* Vách dọc */}
         <mesh position={[-width / 2 + 1.2, height / 2, -length / 2 + 0.625]} castShadow>
           <boxGeometry args={[0.06, height, 1.25]} />
           <meshStandardMaterial color="#b0bec5" transparent opacity={0.3} roughness={0.1} />
         </mesh>
 
-        {/* Thiết bị bên trong phòng vệ sinh */}
+        {/* Thiết bị bên trong toilet */}
         {/* Bồn cầu (Toilet bowl) */}
         <group position={[-width / 2 + 0.4, 0.2, -length / 2 + 0.4]}>
-          {/* Bệ ngồi */}
           <mesh castShadow>
             <cylinderGeometry args={[0.18, 0.16, 0.4, 16]} />
             <meshStandardMaterial color="#fafafa" roughness={0.1} />
           </mesh>
-          {/* Két nước */}
           <mesh castShadow position={[-0.1, 0.4, 0]}>
             <boxGeometry args={[0.16, 0.4, 0.32]} />
             <meshStandardMaterial color="#fafafa" roughness={0.1} />
           </mesh>
         </group>
 
-        {/* Bồn rửa mặt (Sink/Lavabo) */}
+        {/* Bồn rửa mặt (Sink) */}
         <group position={[-width / 2 + 0.4, 0.75, -length / 2 + 0.95]}>
-          {/* Bàn đá nâng đỡ */}
           <mesh castShadow position={[0, -0.05, 0]}>
             <boxGeometry args={[0.35, 0.08, 0.35]} />
             <meshStandardMaterial color="#37474f" roughness={0.6} />
           </mesh>
-          {/* Chậu rửa */}
           <mesh castShadow position={[0, 0.05, 0]}>
             <cylinderGeometry args={[0.14, 0.1, 0.1, 16]} />
             <meshStandardMaterial color="#fafafa" roughness={0.1} />
@@ -118,22 +104,18 @@ function RoomModel({
 
       {/* 6. KHU VỰC BẾP NẤU ĂN (Kitchen Counter) ở góc sau bên phải */}
       <group position={[width / 2 - 0.75, 0.42, -length / 2 + 1.1]}>
-        {/* Kệ bếp nấu */}
         <mesh castShadow>
           <boxGeometry args={[0.65, 0.84, 1.4]} />
           <meshStandardMaterial color="#eceff1" roughness={0.4} />
         </mesh>
-        {/* Mặt bếp đá hoa cương đen */}
         <mesh position={[0, 0.43, 0]} castShadow>
           <boxGeometry args={[0.67, 0.04, 1.42]} />
           <meshStandardMaterial color="#212121" roughness={0.1} />
         </mesh>
-        {/* Bồn rửa chén (Sink) */}
         <mesh position={[0, 0.455, 0.3]} castShadow>
           <boxGeometry args={[0.35, 0.01, 0.45]} />
           <meshStandardMaterial color="#78909c" metalness={0.7} roughness={0.2} />
         </mesh>
-        {/* Tủ treo tường phía trên */}
         <mesh position={[0.05, 1.35, 0]} castShadow>
           <boxGeometry args={[0.45, 0.55, 1.4]} />
           <meshStandardMaterial color={furnitureColor} roughness={0.7} />
@@ -144,7 +126,7 @@ function RoomModel({
       {type === 'o-ghep' ? (
         /* GIƯỜNG TẦNG KTX */
         <group position={[-width / 2 + 1.0, 0.7, length / 2 - 1.1]}>
-          {/* 4 Trụ giường */}
+          {/* Trụ giường */}
           {[-0.8, 0.8].map((x) =>
             [-0.8, 0.8].map((z) => (
               <mesh key={`${x}-${z}`} castShadow position={[x, 0.3, z]}>
@@ -230,10 +212,12 @@ function RoomModel({
       )}
 
       {/* 10. TỦ QUẦN ÁO (Wardrobe) */}
-      <mesh castShadow position={[-width / 2 + 0.55, 0.85, length / 2 - 2.4]}>
-        <boxGeometry args={[0.7, 1.7, 0.5]} />
-        <meshStandardMaterial color={furnitureColor} roughness={0.7} />
-      </mesh>
+      {hasWardrobe && (
+        <mesh castShadow position={[-width / 2 + 0.55, 0.85, length / 2 - 2.4]}>
+          <boxGeometry args={[0.7, 1.7, 0.5]} />
+          <meshStandardMaterial color={furnitureColor} roughness={0.7} />
+        </mesh>
+      )}
 
       {/* 11. MÁY LẠNH/ĐIỀU HÒA (AC) */}
       {hasAC && (
@@ -252,41 +236,59 @@ function RoomModel({
   );
 }
 
-// Component chính
+// Bảng ánh xạ kích thước cố định theo từng loại phòng
+const dimMap = {
+  'phong-tro': { width: 3.8, length: 3.8, height: 2.7, label: 'Phòng Đơn Gác Lửng (15-20m²)', amenities: ['wifi', 'dieu-hoa', 'tu-quan-ao'] },
+  'chung-cu-mini': { width: 4.6, length: 4.6, height: 2.8, label: 'Căn Hộ Studio (25-35m²)', amenities: ['wifi', 'dieu-hoa', 'tu-lanh', 'bep', 'tu-quan-ao'] },
+  'o-ghep': { width: 5.4, length: 5.4, height: 2.9, label: 'KTX Giường Tầng (40-50m²)', amenities: ['wifi', 'dieu-hoa', 'tu-lanh', 'tu-quan-ao'] }
+};
+
+const wallColors = [
+  { value: '#cfd8dc', name: 'Xám Tối Giản' },
+  { value: '#b2dfdb', name: 'Xanh Ngọc' },
+  { value: '#ffecb3', name: 'Vàng Kem' },
+  { value: '#d7ccc8', name: 'Hồng Đất' }
+];
+
+const bedColors = [
+  { value: '#b39ddb', name: 'Tím Oải Hương' },
+  { value: '#81c784', name: 'Xanh Lá Mạ' },
+  { value: '#ff8a80', name: 'Cam San Hô' },
+  { value: '#4fc3f7', name: 'Xanh Da Trời' }
+];
+
+const furnitureColors = [
+  { value: '#8d6e63', name: 'Gỗ Sồi Ấm' },
+  { value: '#5d4037', name: 'Gỗ Óc Chó' },
+  { value: '#37474f', name: 'Sắt Sơn Đen' }
+];
+
 export default function Room3DView({ room }: { room?: Room }) {
   const [mounted, setMounted] = useState(false);
   const [wallColor, setWallColor] = useState('#cfd8dc'); // Sơn xám nhạt tối giản
   const [bedColor, setBedColor] = useState('#b39ddb');  // Drap tím nhạt
   const [furnitureColor, setFurnitureColor] = useState('#8d6e63'); // Gỗ sồi ấm
 
-  // Admin Customizer States
-  const [adminWidth, setAdminWidth] = useState(4.2);
-  const [adminLength, setAdminLength] = useState(4.2);
-  const [adminHeight, setAdminHeight] = useState(2.8);
+  // State chọn loại phòng trong chế độ Demo tự chọn (khi không có room truyền vào)
+  const [demoType, setDemoType] = useState<'phong-tro' | 'chung-cu-mini' | 'o-ghep'>('phong-tro');
 
-  const wallColors = [
-    { value: '#cfd8dc', name: 'Xám Tối Giản' },
-    { value: '#b2dfdb', name: 'Xanh Ngọc' },
-    { value: '#ffecb3', name: 'Vàng Kem' },
-    { value: '#d7ccc8', name: 'Hồng Đất' }
-  ];
+  // Tính toán các thông số kích thước thực tế dựa trên room hoặc demoType
+  const activeType = room ? room.type : demoType;
+  
+  const activeWidth = room 
+    ? Math.max(3.8, Math.min(5.5, Math.sqrt(room.area) * 0.75)) 
+    : dimMap[demoType].width;
 
-  const bedColors = [
-    { value: '#b39ddb', name: 'Tím Oải Hương' },
-    { value: '#81c784', name: 'Xanh Lá Mạ' },
-    { value: '#ff8a80', name: 'Cam San Hô' },
-    { value: '#4fc3f7', name: 'Xanh Da Trời' }
-  ];
+  const activeLength = room 
+    ? Math.max(3.8, Math.min(5.5, Math.sqrt(room.area) * 0.75)) 
+    : dimMap[demoType].length;
 
-  const furnitureColors = [
-    { value: '#8d6e63', name: 'Gỗ Sồi Ấm' },
-    { value: '#5d4037', name: 'Gỗ Óc Chó' },
-    { value: '#37474f', name: 'Sắt Sơn Đen' }
-  ];
+  const activeHeight = room ? 2.8 : dimMap[demoType].height;
+  
+  const activeAmenities = room ? room.amenities : dimMap[demoType].amenities;
 
   useEffect(() => {
     setMounted(true);
-    
     if (room) {
       if (room.type === 'chung-cu-mini') {
         setWallColor('#cfd8dc');
@@ -310,7 +312,7 @@ export default function Room3DView({ room }: { room?: Room }) {
   }
 
   return (
-    <div className="relative flex flex-col lg:flex-row gap-6 w-full p-5 bg-card/60 backdrop-blur-xl border border-border/80 rounded-2xl shadow-lg">
+    <div className="relative flex flex-col lg:flex-row gap-6 w-full p-5 bg-card/60 backdrop-blur-xl border border-border/80 rounded-2xl shadow-lg animate-fade-in">
       
       {/* KHỐI HIỂN THỊ CANVAS 3D */}
       <div className="flex-grow h-[420px] bg-muted/10 rounded-xl overflow-hidden border border-border/50 relative shadow-inner">
@@ -326,13 +328,14 @@ export default function Room3DView({ room }: { room?: Room }) {
           
           <Suspense fallback={null}>
             <RoomModel
-              room={room}
+              type={activeType}
+              amenities={activeAmenities}
               wallColor={wallColor}
               bedColor={bedColor}
               furnitureColor={furnitureColor}
-              customWidth={room ? undefined : adminWidth}
-              customLength={room ? undefined : adminLength}
-              customHeight={room ? undefined : adminHeight}
+              width={activeWidth}
+              length={activeLength}
+              height={activeHeight}
             />
           </Suspense>
           <OrbitControls 
@@ -350,18 +353,45 @@ export default function Room3DView({ room }: { room?: Room }) {
         </div>
       </div>
 
-      {/* BẢNG ĐIỀU KHIỂN */}
+      {/* BẢNG ĐIỀU KHIỂN CHỌN MÀU / CHỌN LOẠI PHÒNG */}
       <div className="w-full lg:w-72 flex flex-col justify-between gap-5.5 shrink-0">
         <div className="flex flex-col gap-5">
           <div className="flex items-center gap-2 border-b border-border/60 pb-3">
             <Palette size={16} className="text-primary" />
             <h4 className="font-black text-xs text-foreground uppercase tracking-wider">
-              {room ? 'Mô phỏng phòng 3D' : 'Tùy biến kích thước 3D'}
+              {room ? 'Mô phỏng bản vẽ 3D' : 'Xem thiết kế 3D mẫu'}
             </h4>
           </div>
 
-          {/* HIỂN THỊ THÔNG SỐ ĐỘNG NẾU CÓ DỮ LIỆU PHÒNG */}
-          {room && (
+          {/* CHỌN LOẠI PHÒNG (CHỈ DÀNH CHO CHẾ ĐỘ HOMEPAGE / DEMO CHUNG) */}
+          {!room ? (
+            <div className="flex flex-col gap-2.5">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Home size={12} className="text-primary" />
+                Lựa chọn loại phòng:
+              </span>
+              <div className="flex flex-col gap-1.5">
+                {[
+                  { id: 'phong-tro', label: 'Phòng Đơn Gác Lửng' },
+                  { id: 'chung-cu-mini', label: 'Căn Hộ Studio khép kín' },
+                  { id: 'o-ghep', label: 'KTX Giường Tầng' }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setDemoType(item.id as any)}
+                    className={`w-full py-2.5 px-3.5 text-xs font-black uppercase tracking-wider border rounded-xl transition-all cursor-pointer text-left ${
+                      demoType === item.id
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-border bg-background/50 hover:bg-muted text-foreground'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* HIỂN THỊ THÔNG TIN KÍCH THƯỚC PHÒNG ĐANG XEM */
             <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 flex flex-col gap-1.5 text-xs text-foreground font-semibold">
               <span className="text-[9px] text-primary font-black uppercase tracking-wider flex items-center gap-1">
                 <Layout size={12} />
@@ -372,75 +402,14 @@ export default function Room3DView({ room }: { room?: Room }) {
                 <span className="text-primary font-extrabold">{room.area} m²</span>
               </div>
               <div className="flex justify-between text-[11px] font-bold">
-                <span>Thiết kế căn hộ:</span>
-                <span className="text-foreground font-extrabold">Bếp & NVS khép kín</span>
+                <span>Thiết kế chi nhánh:</span>
+                <span className="text-foreground font-extrabold">Bếp & NVS riêng biệt</span>
               </div>
               <div className="flex justify-between text-[11px] font-bold">
-                <span>Cơ cấu phòng:</span>
+                <span>Cấu trúc phòng:</span>
                 <span className="text-foreground font-extrabold capitalize">
                   {room.type === 'chung-cu-mini' ? 'Căn hộ Studio' : room.type === 'o-ghep' ? 'KTX giường tầng' : 'Phòng đơn'}
                 </span>
-              </div>
-            </div>
-          )}
-
-          {/* ĐIỀU CHỈNH KÍCH THƯỚC DÀNH CHO ADMIN / CHẾ ĐỘ TỰ DO */}
-          {!room && (
-            <div className="flex flex-col gap-4 p-3.5 rounded-xl border border-border/80 bg-muted/10">
-              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <Layers size={12} />
-                Thông số phòng (Kéo chỉnh)
-              </span>
-              
-              {/* Chiều rộng */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between text-[10px] font-bold text-foreground">
-                  <span>Chiều rộng sàn:</span>
-                  <span className="text-primary font-black">{adminWidth.toFixed(1)} m</span>
-                </div>
-                <input
-                  type="range"
-                  min={3.8}
-                  max={5.5}
-                  step={0.1}
-                  value={adminWidth}
-                  onChange={(e) => setAdminWidth(Number(e.target.value))}
-                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-              </div>
-
-              {/* Chiều dài */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between text-[10px] font-bold text-foreground">
-                  <span>Chiều dài sàn:</span>
-                  <span className="text-primary font-black">{adminLength.toFixed(1)} m</span>
-                </div>
-                <input
-                  type="range"
-                  min={3.8}
-                  max={5.5}
-                  step={0.1}
-                  value={adminLength}
-                  onChange={(e) => setAdminLength(Number(e.target.value))}
-                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-              </div>
-
-              {/* Chiều cao */}
-              <div className="flex flex-col gap-1">
-                <div className="flex justify-between text-[10px] font-bold text-foreground">
-                  <span>Chiều cao trần:</span>
-                  <span className="text-primary font-black">{adminHeight.toFixed(1)} m</span>
-                </div>
-                <input
-                  type="range"
-                  min={2.4}
-                  max={3.4}
-                  step={0.1}
-                  value={adminHeight}
-                  onChange={(e) => setAdminHeight(Number(e.target.value))}
-                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                />
               </div>
             </div>
           )}
