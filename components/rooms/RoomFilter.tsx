@@ -2,28 +2,19 @@
 
 import React from 'react';
 import { useFilters } from '../../store/useFilters';
+import { branches } from '../../data/branches';
 import { Search, MapPin, BadgeDollarSign, SlidersHorizontal, RotateCcw, Home, Sparkles } from 'lucide-react';
-import { Button } from '../ui/Button';
 
 export default function RoomFilter() {
   const {
     search,
-    city,
-    district,
     type,
     maxPrice,
     amenities,
-    sortBy,
+    branchId,
     setFilter,
     resetFilters,
   } = useFilters();
-
-  const districtsByCity = {
-    'Hồ Chí Minh': ['Quận 1', 'Quận 3', 'Quận 7', 'Quận 10', 'Bình Thạnh', 'Gò Vấp', 'Thủ Đức', 'Tân Phú', 'Quận 12'],
-    'Hà Nội': ['Cầu Giấy', 'Đống Đa', 'Tây Hồ', 'Hai Bà Trưng', 'Thanh Xuân', 'Ba Đình'],
-  };
-
-  const currentDistricts = city !== 'all' ? districtsByCity[city] : [];
 
   const handleAmenityChange = (amenityId: string) => {
     const isSelected = amenities.includes(amenityId);
@@ -57,7 +48,7 @@ export default function RoomFilter() {
       <div className="flex items-center justify-between border-b border-border/50 pb-3">
         <div className="flex items-center gap-2">
           <SlidersHorizontal size={16} className="text-primary" />
-          <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider">Bộ lọc phòng trọ</h3>
+          <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider">Bộ lọc phòng trống</h3>
         </div>
         <button
           onClick={resetFilters}
@@ -70,52 +61,34 @@ export default function RoomFilter() {
 
       {/* Tìm kiếm từ khóa */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Tìm kiếm:</label>
+        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Tìm kiếm phòng:</label>
         <div className="relative">
           <input
             type="text"
             value={search}
             onChange={(e) => setFilter({ search: e.target.value })}
-            placeholder="Nhập tên phòng, địa chỉ..."
+            placeholder="Nhập số phòng, mô tả..."
             className="w-full h-10.5 pl-9.5 pr-3.5 rounded-xl border border-border bg-background/50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-foreground"
           />
           <Search className="absolute left-3.5 top-3.5 text-muted-foreground/60" size={14} />
         </div>
       </div>
 
-      {/* Thành phố */}
+      {/* Chọn Chi Nhánh */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
           <MapPin size={11} className="text-primary" />
-          Thành phố
+          Chi nhánh HomieStay:
         </label>
         <select
-          value={city}
-          onChange={(e) => {
-            const val = e.target.value as 'all' | 'Hồ Chí Minh' | 'Hà Nội';
-            setFilter({ city: val, district: 'all' });
-          }}
+          value={branchId}
+          onChange={(e) => setFilter({ branchId: e.target.value })}
           className="w-full h-10.5 px-3 rounded-xl border border-border bg-background/50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/25 text-foreground cursor-pointer"
         >
-          <option value="all">Tất cả thành phố</option>
-          <option value="Hồ Chí Minh">TP. Hồ Chí Minh</option>
-          <option value="Hà Nội">Hà Nội</option>
-        </select>
-      </div>
-
-      {/* Quận huyện (Dynamic) */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Khu vực / Quận</label>
-        <select
-          value={district}
-          onChange={(e) => setFilter({ district: e.target.value })}
-          disabled={city === 'all'}
-          className="w-full h-10.5 px-3 rounded-xl border border-border bg-background/50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:opacity-50 text-foreground cursor-pointer"
-        >
-          <option value="all">Tất cả các quận</option>
-          {currentDistricts.map((dist) => (
-            <option key={dist} value={dist}>
-              {dist}
+          <option value="all">Tất cả chi nhánh</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
             </option>
           ))}
         </select>
@@ -125,7 +98,7 @@ export default function RoomFilter() {
       <div className="flex flex-col gap-1.5">
         <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
           <Home size={11} className="text-primary" />
-          Loại hình phòng
+          Loại hình phòng:
         </label>
         <select
           value={type}
@@ -136,9 +109,9 @@ export default function RoomFilter() {
           className="w-full h-10.5 px-3 rounded-xl border border-border bg-background/50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/25 text-foreground cursor-pointer"
         >
           <option value="all">Tất cả loại hình</option>
-          <option value="phong-tro">Phòng trọ truyền thống</option>
-          <option value="chung-cu-mini">Chung cư mini cao cấp</option>
-          <option value="o-ghep">Ở ghép / Homestay KTX</option>
+          <option value="phong-tro">Phòng đơn gác lửng</option>
+          <option value="chung-cu-mini">Căn hộ Studio</option>
+          <option value="o-ghep">KTX giường tầng</option>
         </select>
       </div>
 
@@ -147,7 +120,7 @@ export default function RoomFilter() {
         <div className="flex items-center justify-between">
           <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
             <BadgeDollarSign size={11} className="text-primary" />
-            Giá tối đa
+            Ngân sách tối đa
           </label>
           <span className="text-xs font-extrabold text-primary">{formatPrice(maxPrice)}</span>
         </div>
@@ -193,7 +166,7 @@ export default function RoomFilter() {
       <div className="flex flex-col gap-2.5">
         <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
           <Sparkles size={11} className="text-primary" />
-          Tiện ích đi kèm
+          Tiện ích bao gồm:
         </label>
         <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
           {amenitiesList.map((item) => (

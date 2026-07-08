@@ -33,6 +33,7 @@ import { useAuth } from '@/store/useAuth';
 import { useRooms } from '@/store/useRooms';
 import { useBookings } from '@/store/useBookings';
 import { useToasts } from '@/store/useToasts';
+import { branches } from '@/data/branches';
 import { users } from '@/data/users';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -47,6 +48,10 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
   const { addToast } = useToasts();
 
   const room = rooms.find((r) => r.id === roomId);
+  
+  // Lấy chi nhánh và quản lý chi nhánh tương ứng
+  const branch = room ? branches.find((b) => b.id === room.branchId) : null;
+  // Fallback landlord cho chat modal
   const landlord = room ? users.find((u) => u.id === room.landlordId) : null;
 
   // States
@@ -65,7 +70,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
 
-  if (!room || !landlord) {
+  if (!room || !branch || !landlord) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Navbar />
@@ -119,7 +124,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       id: bookingId,
       roomId: room.id,
       tenantId: currentUser.id,
-      landlordId: room.landlordId,
+      landlordId: room.landlordId, // Quản lý chung
       bookingDate,
       bookingTime,
       type: bookingType,
@@ -183,6 +188,9 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
             </Badge>
             <Badge variant="outline" className="w-fit text-[9px] py-0.5 px-2 border-primary/20 text-primary bg-primary/5">
               Đánh giá: {room.rating} ★
+            </Badge>
+            <Badge variant="secondary" className="w-fit text-[9px] py-0.5 px-2 text-muted-foreground bg-muted/60">
+              {branch.name}
             </Badge>
           </div>
           <h1 className="text-xl md:text-3xl font-black text-foreground leading-tight tracking-tight">
@@ -301,13 +309,13 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-center gap-4">
                 <img
                   src={landlord.avatar}
-                  alt={landlord.name}
+                  alt={branch.managerName}
                   className="w-13.5 h-13.5 rounded-full object-cover border border-primary/25 shadow-sm"
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm font-extrabold text-foreground">{landlord.name}</span>
-                  <span className="text-xs text-muted-foreground mt-0.5 font-semibold">Chủ trọ uy tín • {landlord.yearsActive} năm hoạt động</span>
-                  <span className="text-xs text-muted-foreground mt-0.5 font-semibold">Đang quản lý {landlord.roomsCount} phòng trọ</span>
+                  <span className="text-xs text-muted-foreground font-black uppercase tracking-wider">Quản lý chi nhánh</span>
+                  <span className="text-sm font-extrabold text-foreground mt-0.5">{branch.managerName}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 font-semibold">Đại diện vận hành: {branch.name}</span>
                 </div>
               </div>
               
@@ -315,7 +323,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                 <Button
                   onClick={() => {
                     if (!currentUser) {
-                      addToast('Vui lòng chọn vai trò Người Thuê để nhắn tin với chủ nhà!', 'error');
+                      addToast('Vui lòng chọn vai trò Người Thuê để nhắn tin với ban quản lý!', 'error');
                       return;
                     }
                     setIsChatOpen(true);
@@ -327,14 +335,14 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                   <MessageSquare size={15} />
                   Nhắn tin
                 </Button>
-                <a href={`tel:${landlord.phone}`} className="flex-1 sm:flex-none">
+                <a href={`tel:${branch.managerPhone}`} className="flex-1 sm:flex-none">
                   <Button
                     variant="secondary"
                     size="sm"
                     className="w-full flex items-center justify-center gap-1.5 text-xs font-extrabold rounded-xl"
                   >
                     <Phone size={15} />
-                    {landlord.phone}
+                    {branch.managerPhone}
                   </Button>
                 </a>
               </div>
@@ -343,7 +351,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
             {/* MỤC ĐÁNH GIÁ (REVIEWS) */}
             <div className="flex flex-col gap-6 border-t border-border/40 pt-8.5">
               <h3 className="text-base md:text-lg font-extrabold text-foreground tracking-tight">
-                Đánh giá từ khách thuê ({roomReviews.length})
+                Đánh giá từ cư dân ({roomReviews.length})
               </h3>
               
               {/* Form gửi Đánh giá mới */}
@@ -368,7 +376,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                   <textarea
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder="Nhập nhận xét của bạn về chất lượng phòng, an ninh, tiện ích hoặc thái độ chủ nhà..."
+                    placeholder="Nhập nhận xét của bạn về chất lượng phòng, không gian sinh hoạt chi nhánh..."
                     rows={3}
                     className="w-full p-3 rounded-xl border border-border bg-background/50 text-xs md:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-foreground"
                   />
@@ -423,7 +431,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
               <div>
                 <h3 className="text-base font-black text-foreground tracking-tight">Đặt Hẹn & Giữ Chỗ</h3>
                 <p className="text-[10px] text-muted-foreground mt-0.5 font-bold">
-                  Chọn hình thức phù hợp để gửi thông tin liên hệ tới chủ nhà.
+                  Chọn hình thức phù hợp để gửi yêu cầu tới ban quản lý HomieStay.
                 </p>
               </div>
 
@@ -508,7 +516,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                       Thông tin cọc giữ phòng
                     </div>
                     <p className="text-[11px] text-muted-foreground font-semibold leading-relaxed">
-                      Đặt cọc giữ phòng tương đương với 1 tháng tiền nhà: <span className="font-extrabold text-primary">{room.price.toLocaleString('vi-VN')} đ</span>. Số tiền này sẽ được lưu giữ bảo chứng và đối soát khi ký kết hợp đồng thuê.
+                      Đặt cọc giữ phòng tương đương với 1 tháng tiền nhà: <span className="font-extrabold text-primary">{room.price.toLocaleString('vi-VN')} đ</span>. Số tiền này sẽ được chuyển vào tài khoản hệ thống co-living bảo chứng.
                     </p>
                   </div>
                 )}
@@ -543,7 +551,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
             Gửi yêu cầu {bookingType === 'deposit' ? 'cọc giữ phòng' : 'lịch hẹn xem phòng'} thành công!
           </h4>
           <p className="text-xs text-muted-foreground font-semibold mt-2.5 max-w-sm leading-relaxed">
-            Yêu cầu của bạn đã được chuyển tới chủ trọ <span className="font-extrabold text-foreground">{landlord.name}</span>. Bạn có thể kiểm tra trạng thái và nhận tin nhắn phản hồi tại trang cá nhân.
+            Yêu cầu của bạn đã được chuyển tới quản lý chi nhánh <span className="font-extrabold text-foreground">{branch.managerName}</span>. Bạn có thể kiểm tra trạng thái tại trang cá nhân.
           </p>
           <div className="flex gap-3 w-full mt-6.5">
             <Button
@@ -577,7 +585,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       {/* FOOTER */}
       <footer className="bg-card border-t border-border/40 py-6.5 text-center text-xs text-muted-foreground font-semibold mt-16">
         <div className="container mx-auto px-4">
-          <span>HomieStay © 2026. Demo Web Thuê Phòng Trọ Client-Side.</span>
+          <span>HomieStay © 2026. Cổng Thông Tin & Quản Lý Căn Hộ HomieStay Co-living.</span>
         </div>
       </footer>
     </div>

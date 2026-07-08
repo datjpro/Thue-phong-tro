@@ -16,12 +16,11 @@ export default function RoomsPage() {
   const { compareIds, clearCompare } = useCompare();
   const {
     search,
-    city,
-    district,
     type,
     maxPrice,
     amenities,
     sortBy,
+    branchId,
     setFilter,
     resetFilters
   } = useFilters();
@@ -45,19 +44,16 @@ export default function RoomsPage() {
           if (!matchTitle && !matchDesc && !matchAddr) return false;
         }
 
-        // 2. Lọc theo thành phố
-        if (city !== 'all' && room.city !== city) return false;
+        // 2. Lọc theo chi nhánh
+        if (branchId !== 'all' && room.branchId !== branchId) return false;
 
-        // 3. Lọc theo quận/huyện
-        if (district !== 'all' && room.district !== district) return false;
-
-        // 4. Lọc theo loại phòng
+        // 3. Lọc theo loại phòng
         if (type !== 'all' && room.type !== type) return false;
 
-        // 5. Lọc theo khoảng giá
+        // 4. Lọc theo khoảng giá
         if (room.price > maxPrice) return false;
 
-        // 6. Lọc theo tiện ích (phòng phải có ĐỦ tất cả tiện ích được check)
+        // 5. Lọc theo tiện ích (phòng phải có ĐỦ tất cả tiện ích được check)
         if (amenities.length > 0) {
           const hasAllAmenities = amenities.every((amenity) =>
             room.amenities.includes(amenity)
@@ -83,12 +79,12 @@ export default function RoomsPage() {
         }
         return 0;
       });
-  }, [rooms, search, city, district, type, maxPrice, amenities, sortBy]);
+  }, [rooms, search, type, maxPrice, amenities, sortBy, branchId]);
 
   // Reset số lượng hiển thị khi thay đổi bộ lọc
   React.useEffect(() => {
     setVisibleCount(8);
-  }, [search, city, district, type, maxPrice, amenities, sortBy]);
+  }, [search, type, maxPrice, amenities, sortBy, branchId]);
 
   const displayedRooms = filteredRooms.slice(0, visibleCount);
 
@@ -100,9 +96,9 @@ export default function RoomsPage() {
         {/* Đường dẫn & Sắp xếp đầu trang */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-border/40 pb-5">
           <div>
-            <h1 className="text-xl md:text-3xl font-black text-foreground tracking-tight">Danh Sách Phòng Trọ</h1>
+            <h1 className="text-xl md:text-3xl font-black text-foreground tracking-tight">Tìm Phòng Cư Trú</h1>
             <p className="text-xs text-muted-foreground font-semibold mt-1">
-              Tìm thấy <span className="text-primary font-extrabold">{filteredRooms.length}</span> phòng phù hợp với yêu cầu của bạn.
+              Hệ thống tìm thấy <span className="text-primary font-extrabold">{filteredRooms.length}</span> phòng trống phù hợp.
             </p>
           </div>
 
@@ -154,19 +150,19 @@ export default function RoomsPage() {
             {filteredRooms.length === 0 ? (
               /* EMPTY STATE */
               <div className="flex flex-col items-center justify-center text-center py-16 px-4 glass-card border border-border rounded-2xl shadow-sm">
-                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 glow-shadow-primary">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 glow-shadow-primary animate-pulse">
                   <SlidersHorizontal size={22} />
                 </div>
                 <h3 className="text-base font-extrabold text-foreground">Không tìm thấy phòng phù hợp</h3>
                 <p className="text-xs md:text-sm text-muted-foreground max-w-sm mt-2 font-semibold leading-relaxed">
-                  Chúng tôi không tìm thấy kết quả nào khớp với các bộ lọc bạn đã chọn. Hãy thử nới rộng khoảng giá hoặc bớt một số tiện ích đi nhé.
+                  Chúng tôi không tìm thấy phòng trống nào khớp với các bộ lọc bạn đã chọn. Hãy thử chọn chi nhánh khác hoặc bớt một số tiện ích đi nhé.
                 </p>
                 <div className="flex gap-3 mt-6">
                   <Button onClick={resetFilters} variant="outline" size="sm" className="font-extrabold text-xs">
                     Xóa bộ lọc
                   </Button>
                   <Button
-                    onClick={() => setFilter({ search: '', city: 'all', district: 'all', type: 'all', maxPrice: 8000000, amenities: [] })}
+                    onClick={() => setFilter({ search: '', branchId: 'all', type: 'all', maxPrice: 8000000, amenities: [] })}
                     size="sm"
                     className="font-extrabold text-xs glow-shadow-primary"
                   >
@@ -191,7 +187,7 @@ export default function RoomsPage() {
                       variant="outline"
                       className="px-8 font-extrabold text-xs rounded-xl"
                     >
-                      Xem thêm phòng trọ
+                      Xem thêm phòng trống
                     </Button>
                   </div>
                 )}
@@ -232,17 +228,6 @@ export default function RoomsPage() {
 
       {/* MODAL SO SÁNH PHÒNG */}
       <CompareModal isOpen={isCompareOpen} onClose={() => setIsCompareOpen(false)} />
-
-      {/* FOOTER */}
-      <footer className="bg-card border-t border-border/40 py-8 text-center text-xs text-muted-foreground font-semibold mt-16">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <span>HomieStay © 2026. Demo Web Thuê Phòng Trọ Client-Side.</span>
-          <div className="flex gap-5">
-            <span className="hover:text-primary cursor-pointer transition-colors">Hướng dẫn</span>
-            <span className="hover:text-primary cursor-pointer transition-colors">Báo cáo sự cố</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
