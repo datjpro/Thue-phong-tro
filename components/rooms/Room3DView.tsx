@@ -29,25 +29,23 @@ function RoomModel({
   const type = room?.type || 'phong-tro';
   const amenities = room?.amenities || [];
 
-  // Chiều rộng và dài tự động tính từ diện tích (clamped giữa 3.6 và 5.5)
-  const defaultDim = Math.max(3.6, Math.min(5.5, Math.sqrt(area) * 0.7));
+  // Chiều rộng và dài tự động tính từ diện tích (clamped giữa 3.8 và 5.5)
+  const defaultDim = Math.max(3.8, Math.min(5.5, Math.sqrt(area) * 0.75));
   const width = customWidth || defaultDim;
   const length = customLength || defaultDim;
   const height = customHeight || 2.8;
 
-  // Render các thiết bị điện máy dựa trên tiện ích (amenities)
-  const hasAC = amenities.includes('dieu-hoa') || true; // Mặc định hiển thị AC nếu là co-living
-  const hasFridge = amenities.includes('tu-lanh');
+  // Tiện ích
+  const hasAC = amenities.includes('dieu-hoa') || true;
+  const hasFridge = amenities.includes('tu-lanh') || true; // Hiện thị tủ lạnh cho đầy đủ
   const hasWashingMachine = amenities.includes('may-giat');
-  const hasKitchen = amenities.includes('bep');
-  const hasWardrobe = amenities.includes('tu-quan-ao');
 
   return (
     <group position={[0, -height / 3, 0]} rotation={[0, -Math.PI / 4, 0]}>
       {/* 1. SÀN NHÀ (Floor) */}
       <mesh receiveShadow position={[0, -0.075, 0]}>
         <boxGeometry args={[width, 0.15, length]} />
-        <meshStandardMaterial color="#f0e6d6" roughness={0.7} />
+        <meshStandardMaterial color="#e5dcd0" roughness={0.7} />
       </mesh>
 
       {/* 2. TƯỜNG TRÁI (Left Wall) */}
@@ -64,32 +62,97 @@ function RoomModel({
 
       {/* 4. CỬA SỔ (Window) */}
       <group position={[0, height * 0.6, -length / 2 - 0.035]}>
-        {/* Khung cửa sổ gỗ */}
         <mesh castShadow>
-          <boxGeometry args={[1.6, 1.1, 0.08]} />
+          <boxGeometry args={[1.5, 1.1, 0.08]} />
           <meshStandardMaterial color="#3e2723" roughness={0.8} />
         </mesh>
-        {/* Kính (Phát sáng nhẹ) */}
         <mesh position={[0, 0, 0.015]}>
-          <planeGeometry args={[1.5, 1.0]} />
-          <meshStandardMaterial color="#e0f7fa" emissive="#80deea" emissiveIntensity={0.4} roughness={0.1} />
+          <planeGeometry args={[1.4, 1.0]} />
+          <meshStandardMaterial color="#e0f7fa" emissive="#80deea" emissiveIntensity={0.3} roughness={0.1} />
         </mesh>
       </group>
 
-      {/* 5. PHÂN LOẠI GIƯỜNG NGỦ THEO LOẠI PHÒNG (Bed System) */}
+      {/* 5. PHÒNG VỆ SINH KHÉP KÍN (NVS / Bathroom) ở góc sau bên trái */}
+      <group>
+        {/* Vách ngăn kính mờ góc Toilet */}
+        {/* Vách ngang */}
+        <mesh position={[-width / 2 + 0.6, height / 2, -length / 2 + 1.25]} castShadow>
+          <boxGeometry args={[1.2, height, 0.06]} />
+          <meshStandardMaterial color="#b0bec5" transparent opacity={0.3} roughness={0.1} />
+        </mesh>
+        {/* Vách dọc */}
+        <mesh position={[-width / 2 + 1.2, height / 2, -length / 2 + 0.625]} castShadow>
+          <boxGeometry args={[0.06, height, 1.25]} />
+          <meshStandardMaterial color="#b0bec5" transparent opacity={0.3} roughness={0.1} />
+        </mesh>
+
+        {/* Thiết bị bên trong phòng vệ sinh */}
+        {/* Bồn cầu (Toilet bowl) */}
+        <group position={[-width / 2 + 0.4, 0.2, -length / 2 + 0.4]}>
+          {/* Bệ ngồi */}
+          <mesh castShadow>
+            <cylinderGeometry args={[0.18, 0.16, 0.4, 16]} />
+            <meshStandardMaterial color="#fafafa" roughness={0.1} />
+          </mesh>
+          {/* Két nước */}
+          <mesh castShadow position={[-0.1, 0.4, 0]}>
+            <boxGeometry args={[0.16, 0.4, 0.32]} />
+            <meshStandardMaterial color="#fafafa" roughness={0.1} />
+          </mesh>
+        </group>
+
+        {/* Bồn rửa mặt (Sink/Lavabo) */}
+        <group position={[-width / 2 + 0.4, 0.75, -length / 2 + 0.95]}>
+          {/* Bàn đá nâng đỡ */}
+          <mesh castShadow position={[0, -0.05, 0]}>
+            <boxGeometry args={[0.35, 0.08, 0.35]} />
+            <meshStandardMaterial color="#37474f" roughness={0.6} />
+          </mesh>
+          {/* Chậu rửa */}
+          <mesh castShadow position={[0, 0.05, 0]}>
+            <cylinderGeometry args={[0.14, 0.1, 0.1, 16]} />
+            <meshStandardMaterial color="#fafafa" roughness={0.1} />
+          </mesh>
+        </group>
+      </group>
+
+      {/* 6. KHU VỰC BẾP NẤU ĂN (Kitchen Counter) ở góc sau bên phải */}
+      <group position={[width / 2 - 0.75, 0.42, -length / 2 + 1.1]}>
+        {/* Kệ bếp nấu */}
+        <mesh castShadow>
+          <boxGeometry args={[0.65, 0.84, 1.4]} />
+          <meshStandardMaterial color="#eceff1" roughness={0.4} />
+        </mesh>
+        {/* Mặt bếp đá hoa cương đen */}
+        <mesh position={[0, 0.43, 0]} castShadow>
+          <boxGeometry args={[0.67, 0.04, 1.42]} />
+          <meshStandardMaterial color="#212121" roughness={0.1} />
+        </mesh>
+        {/* Bồn rửa chén (Sink) */}
+        <mesh position={[0, 0.455, 0.3]} castShadow>
+          <boxGeometry args={[0.35, 0.01, 0.45]} />
+          <meshStandardMaterial color="#78909c" metalness={0.7} roughness={0.2} />
+        </mesh>
+        {/* Tủ treo tường phía trên */}
+        <mesh position={[0.05, 1.35, 0]} castShadow>
+          <boxGeometry args={[0.45, 0.55, 1.4]} />
+          <meshStandardMaterial color={furnitureColor} roughness={0.7} />
+        </mesh>
+      </group>
+
+      {/* 7. GIƯỜNG NGỦ (Bed) ở góc trước bên trái */}
       {type === 'o-ghep' ? (
-        /* GIƯỜNG TẦNG (Bunk Bed) cho KTX ở ghép */
-        <group position={[-width / 2 + 1.0, 0.7, -length / 2 + 1.0]}>
+        /* GIƯỜNG TẦNG KTX */
+        <group position={[-width / 2 + 1.0, 0.7, length / 2 - 1.1]}>
           {/* 4 Trụ giường */}
           {[-0.8, 0.8].map((x) =>
             [-0.8, 0.8].map((z) => (
               <mesh key={`${x}-${z}`} castShadow position={[x, 0.3, z]}>
-                <boxGeometry args={[0.08, 2.0, 0.08]} />
+                <boxGeometry args={[0.07, 2.0, 0.07]} />
                 <meshStandardMaterial color={furnitureColor} roughness={0.7} />
               </mesh>
             ))
           )}
-
           {/* Tầng Dưới */}
           <group position={[0, -0.2, 0]}>
             <mesh castShadow>
@@ -97,15 +160,10 @@ function RoomModel({
               <meshStandardMaterial color={furnitureColor} roughness={0.7} />
             </mesh>
             <mesh castShadow position={[0, 0.1, 0]}>
-              <boxGeometry args={[1.4, 0.18, 1.4]} />
+              <boxGeometry args={[1.42, 0.18, 1.42]} />
               <meshStandardMaterial color={bedColor} roughness={0.8} />
             </mesh>
-            <mesh castShadow position={[0.5, 0.22, -0.5]} rotation={[0, 0, 0]}>
-              <boxGeometry args={[0.3, 0.1, 0.6]} />
-              <meshStandardMaterial color="#ffffff" roughness={0.9} />
-            </mesh>
           </group>
-
           {/* Tầng Trên */}
           <group position={[0, 0.9, 0]}>
             <mesh castShadow>
@@ -113,159 +171,82 @@ function RoomModel({
               <meshStandardMaterial color={furnitureColor} roughness={0.7} />
             </mesh>
             <mesh castShadow position={[0, 0.1, 0]}>
-              <boxGeometry args={[1.4, 0.18, 1.4]} />
+              <boxGeometry args={[1.42, 0.18, 1.42]} />
               <meshStandardMaterial color={bedColor} roughness={0.8} />
             </mesh>
-            <mesh castShadow position={[0.5, 0.22, -0.5]} rotation={[0, 0, 0]}>
-              <boxGeometry args={[0.3, 0.1, 0.6]} />
-              <meshStandardMaterial color="#ffffff" roughness={0.9} />
-            </mesh>
-          </group>
-
-          {/* Thang leo */}
-          <group position={[0.8, 0.3, 0.2]} rotation={[0, 0, 0]}>
-            <mesh castShadow position={[-0.04, 0, 0]}>
-              <boxGeometry args={[0.04, 1.4, 0.04]} />
-              <meshStandardMaterial color="#90a4ae" roughness={0.4} />
-            </mesh>
-            <mesh castShadow position={[0.04, 0, 0]}>
-              <boxGeometry args={[0.04, 1.4, 0.04]} />
-              <meshStandardMaterial color="#90a4ae" roughness={0.4} />
-            </mesh>
-            {/* Các bậc thang */}
-            {[-0.5, -0.2, 0.1, 0.4].map((y, idx) => (
-              <mesh key={idx} position={[0, y, 0]}>
-                <boxGeometry args={[0.12, 0.02, 0.02]} />
-                <meshStandardMaterial color="#cfd8dc" roughness={0.3} />
-              </mesh>
-            ))}
           </group>
         </group>
       ) : (
-        /* GIƯỜNG ĐƠN / GIƯỜNG ĐÔI (Single/Double Bed) */
-        <group position={[-width / 2 + 1.0, 0.2, -length / 2 + 1.1]}>
-          {/* Khung giường */}
-          <mesh castShadow position={[0, 0, 0]}>
-            <boxGeometry args={[1.7, 0.3, 1.7]} />
+        /* GIƯỜNG ĐƠN / GIƯỜNG ĐÔI */
+        <group position={[-width / 2 + 1.0, 0.2, length / 2 - 1.1]}>
+          <mesh castShadow>
+            <boxGeometry args={[1.6, 0.3, 1.6]} />
             <meshStandardMaterial color={furnitureColor} roughness={0.7} />
           </mesh>
-          {/* Nệm trắng */}
           <mesh castShadow position={[0, 0.2, 0]}>
-            <boxGeometry args={[1.6, 0.25, 1.6]} />
+            <boxGeometry args={[1.5, 0.22, 1.5]} />
             <meshStandardMaterial color="#fafafa" roughness={0.9} />
           </mesh>
-          {/* Drap giường phủ màu chăn */}
-          <mesh castShadow position={[0, 0.22, 0.25]}>
-            <boxGeometry args={[1.62, 0.23, 1.1]} />
+          <mesh castShadow position={[0, 0.22, 0.2]}>
+            <boxGeometry args={[1.52, 0.21, 1.15]} />
             <meshStandardMaterial color={bedColor} roughness={0.8} />
           </mesh>
-          {/* Gối nằm */}
-          <mesh castShadow position={[0, 0.35, -0.55]}>
-            <boxGeometry args={[0.9, 0.1, 0.4]} />
+          <mesh castShadow position={[0, 0.32, -0.52]}>
+            <boxGeometry args={[0.8, 0.1, 0.35]} />
             <meshStandardMaterial color="#e0e0e0" roughness={0.9} />
           </mesh>
         </group>
       )}
 
-      {/* 6. BÀN LÀM VIỆC / BÀN HỌC (Desk & Laptop) */}
-      <group position={[width / 2 - 1.1, 0.35, -length / 2 + 0.9]}>
-        {/* Mặt bàn */}
+      {/* 8. BÀN LÀM VIỆC (Desk) ở góc trước bên phải */}
+      <group position={[width / 2 - 0.9, 0.35, length / 2 - 0.8]}>
         <mesh castShadow position={[0, 0.18, 0]}>
-          <boxGeometry args={[1.2, 0.06, 0.7]} />
+          <boxGeometry args={[1.1, 0.05, 0.65]} />
           <meshStandardMaterial color={furnitureColor} roughness={0.7} />
         </mesh>
-        {/* Chân bàn bên trái */}
-        <mesh castShadow position={[-0.52, -0.09, 0]}>
-          <boxGeometry args={[0.06, 0.48, 0.6]} />
+        <mesh castShadow position={[-0.48, -0.09, 0]}>
+          <boxGeometry args={[0.05, 0.48, 0.55]} />
           <meshStandardMaterial color={furnitureColor} roughness={0.7} />
         </mesh>
-        {/* Chân bàn bên phải */}
-        <mesh castShadow position={[0.52, -0.09, 0]}>
-          <boxGeometry args={[0.06, 0.48, 0.6]} />
+        <mesh castShadow position={[0.48, -0.09, 0]}>
+          <boxGeometry args={[0.05, 0.48, 0.55]} />
           <meshStandardMaterial color={furnitureColor} roughness={0.7} />
         </mesh>
-        {/* Laptop nhỏ gọn */}
-        <mesh position={[0, 0.23, 0]}>
-          <boxGeometry args={[0.3, 0.02, 0.2]} />
-          <meshStandardMaterial color="#757575" metalness={0.8} roughness={0.2} />
-        </mesh>
-        <mesh position={[0, 0.31, -0.09]} rotation={[-Math.PI / 6, 0, 0]}>
-          <boxGeometry args={[0.3, 0.15, 0.015]} />
-          <meshStandardMaterial color="#757575" metalness={0.8} roughness={0.2} />
+        {/* Laptop nhỏ */}
+        <mesh position={[0, 0.22, 0]}>
+          <boxGeometry args={[0.26, 0.02, 0.18]} />
+          <meshStandardMaterial color="#607d8b" metalness={0.7} roughness={0.3} />
         </mesh>
       </group>
 
-      {/* 7. TỦ QUẦN ÁO (Wardrobe) nếu có */}
-      {hasWardrobe && (
-        <mesh castShadow position={[-width / 2 + 0.6, 0.9, length / 2 - 0.7]}>
-          <boxGeometry args={[0.8, 1.8, 0.55]} />
-          <meshStandardMaterial color={furnitureColor} roughness={0.7} />
-        </mesh>
-      )}
-
-      {/* 8. KỆ BẾP (Kitchen Counter) nếu có */}
-      {hasKitchen && (
-        <group position={[width / 2 - 0.8, 0.42, length / 2 - 1.2]}>
-          {/* Bàn bếp */}
-          <mesh castShadow>
-            <boxGeometry args={[0.7, 0.84, 1.5]} />
-            <meshStandardMaterial color="#eceff1" roughness={0.4} />
-          </mesh>
-          {/* Mặt đá bếp đen */}
-          <mesh position={[0, 0.43, 0]}>
-            <boxGeometry args={[0.72, 0.04, 1.52]} />
-            <meshStandardMaterial color="#212121" roughness={0.2} />
-          </mesh>
-          {/* Tủ treo tường phía trên */}
-          <mesh position={[0, 1.4, 0]} castShadow>
-            <boxGeometry args={[0.5, 0.6, 1.5]} />
-            <meshStandardMaterial color={furnitureColor} roughness={0.7} />
-          </mesh>
-        </group>
-      )}
-
-      {/* 9. TỦ LẠNH (Fridge) nếu có */}
+      {/* 9. TỦ LẠNH (Fridge) */}
       {hasFridge && (
-        <group position={[width / 2 - 0.4, 0.65, length / 2 - 0.4]}>
+        <group position={[width / 2 - 0.35, 0.6, -length / 2 + 2.1]}>
           <mesh castShadow>
-            <boxGeometry args={[0.55, 1.3, 0.55]} />
-            <meshStandardMaterial color="#b0bec5" metalness={0.6} roughness={0.3} />
-          </mesh>
-          {/* Tay cầm cửa tủ lạnh */}
-          <mesh position={[-0.28, 0.2, 0.1]}>
-            <boxGeometry args={[0.02, 0.3, 0.02]} />
-            <meshStandardMaterial color="#37474f" roughness={0.2} />
+            <boxGeometry args={[0.5, 1.2, 0.5]} />
+            <meshStandardMaterial color="#90a4ae" metalness={0.5} roughness={0.3} />
           </mesh>
         </group>
       )}
 
-      {/* 10. MÁY GIẶT (Washing Machine) nếu có */}
-      {hasWashingMachine && (
-        <group position={[-width / 2 + 0.4, 0.42, length / 2 - 1.7]}>
-          <mesh castShadow>
-            <boxGeometry args={[0.55, 0.84, 0.55]} />
-            <meshStandardMaterial color="#f5f5f5" roughness={0.5} />
-          </mesh>
-          {/* Cửa lồng giặt hình tròn */}
-          <mesh position={[0.28, 0.1, 0]} rotation={[0, Math.PI / 2, 0]}>
-            <cylinderGeometry args={[0.18, 0.18, 0.02, 16]} />
-            <meshStandardMaterial color="#37474f" metalness={0.7} roughness={0.2} />
-          </mesh>
-        </group>
-      )}
+      {/* 10. TỦ QUẦN ÁO (Wardrobe) */}
+      <mesh castShadow position={[-width / 2 + 0.55, 0.85, length / 2 - 2.4]}>
+        <boxGeometry args={[0.7, 1.7, 0.5]} />
+        <meshStandardMaterial color={furnitureColor} roughness={0.7} />
+      </mesh>
 
-      {/* 11. MÁY LẠNH/ĐIỀU HÒA (Air Conditioner) */}
+      {/* 11. MÁY LẠNH/ĐIỀU HÒA (AC) */}
       {hasAC && (
-        <mesh position={[0, height - 0.35, -length / 2 - 0.01]} castShadow>
-          <boxGeometry args={[0.8, 0.22, 0.2]} />
+        <mesh position={[0, height - 0.35, -length / 2 - 0.015]} castShadow>
+          <boxGeometry args={[0.75, 0.2, 0.18]} />
           <meshStandardMaterial color="#fafafa" roughness={0.6} />
         </mesh>
       )}
 
       {/* 12. THẢM TRẢI SÀN (Rug) */}
-      <mesh position={[0, 0.01, 0.3]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[1.8, 1.2]} />
-        <meshStandardMaterial color="#795548" roughness={0.9} />
+      <mesh position={[0, 0.005, 0.3]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[1.5, 1.0]} />
+        <meshStandardMaterial color="#a1887f" roughness={0.9} />
       </mesh>
     </group>
   );
@@ -275,15 +256,14 @@ function RoomModel({
 export default function Room3DView({ room }: { room?: Room }) {
   const [mounted, setMounted] = useState(false);
   const [wallColor, setWallColor] = useState('#cfd8dc'); // Sơn xám nhạt tối giản
-  const [bedColor, setBedColor] = useState('#81c784');  // Drap xanh lá mạ tươi mát
+  const [bedColor, setBedColor] = useState('#b39ddb');  // Drap tím nhạt
   const [furnitureColor, setFurnitureColor] = useState('#8d6e63'); // Gỗ sồi ấm
 
-  // Admin Customizer States (chỉ dùng khi không có room truyền vào - chế độ tự chế hoặc giả lập)
+  // Admin Customizer States
   const [adminWidth, setAdminWidth] = useState(4.2);
   const [adminLength, setAdminLength] = useState(4.2);
   const [adminHeight, setAdminHeight] = useState(2.8);
 
-  // Danh mục màu
   const wallColors = [
     { value: '#cfd8dc', name: 'Xám Tối Giản' },
     { value: '#b2dfdb', name: 'Xanh Ngọc' },
@@ -292,8 +272,8 @@ export default function Room3DView({ room }: { room?: Room }) {
   ];
 
   const bedColors = [
-    { value: '#81c784', name: 'Xanh Lá Mạ' },
     { value: '#b39ddb', name: 'Tím Oải Hương' },
+    { value: '#81c784', name: 'Xanh Lá Mạ' },
     { value: '#ff8a80', name: 'Cam San Hô' },
     { value: '#4fc3f7', name: 'Xanh Da Trời' }
   ];
@@ -307,13 +287,12 @@ export default function Room3DView({ room }: { room?: Room }) {
   useEffect(() => {
     setMounted(true);
     
-    // Nếu có dữ liệu phòng truyền vào, set màu default phù hợp
     if (room) {
       if (room.type === 'chung-cu-mini') {
-        setWallColor('#cfd8dc'); // Studio xám sang trọng
-        setBedColor('#b39ddb');  // Ga giường tím
+        setWallColor('#cfd8dc');
+        setBedColor('#b39ddb');
       } else if (room.type === 'o-ghep') {
-        setWallColor('#b2dfdb'); // KTX tươi trẻ
+        setWallColor('#b2dfdb');
         setBedColor('#4fc3f7');
       }
     }
@@ -371,7 +350,7 @@ export default function Room3DView({ room }: { room?: Room }) {
         </div>
       </div>
 
-      {/* BẢNG ĐIỀU KHIỂN (MÀU SẮC & KÍCH THƯỚC) */}
+      {/* BẢNG ĐIỀU KHIỂN */}
       <div className="w-full lg:w-72 flex flex-col justify-between gap-5.5 shrink-0">
         <div className="flex flex-col gap-5">
           <div className="flex items-center gap-2 border-b border-border/60 pb-3">
@@ -393,7 +372,11 @@ export default function Room3DView({ room }: { room?: Room }) {
                 <span className="text-primary font-extrabold">{room.area} m²</span>
               </div>
               <div className="flex justify-between text-[11px] font-bold">
-                <span>Loại phòng co-living:</span>
+                <span>Thiết kế căn hộ:</span>
+                <span className="text-foreground font-extrabold">Bếp & NVS khép kín</span>
+              </div>
+              <div className="flex justify-between text-[11px] font-bold">
+                <span>Cơ cấu phòng:</span>
                 <span className="text-foreground font-extrabold capitalize">
                   {room.type === 'chung-cu-mini' ? 'Căn hộ Studio' : room.type === 'o-ghep' ? 'KTX giường tầng' : 'Phòng đơn'}
                 </span>
@@ -417,7 +400,7 @@ export default function Room3DView({ room }: { room?: Room }) {
                 </div>
                 <input
                   type="range"
-                  min={3.5}
+                  min={3.8}
                   max={5.5}
                   step={0.1}
                   value={adminWidth}
@@ -434,7 +417,7 @@ export default function Room3DView({ room }: { room?: Room }) {
                 </div>
                 <input
                   type="range"
-                  min={3.5}
+                  min={3.8}
                   max={5.5}
                   step={0.1}
                   value={adminLength}
