@@ -7,6 +7,7 @@ interface RoomsState {
   reviews: Review[];
   addRoom: (room: Room) => void;
   updateRoom: (roomId: string, updatedRoom: Partial<Room>) => void;
+  updateRoomStatus: (roomId: string, status: Room['status']) => void;
   deleteRoom: (roomId: string) => void;
   addReview: (review: Review) => void;
 }
@@ -22,6 +23,12 @@ export const useRooms = create<RoomsState>((set) => ({
   updateRoom: (roomId, updatedFields) => set((state) => ({
     rooms: state.rooms.map((room) => 
       room.id === roomId ? { ...room, ...updatedFields } : room
+    )
+  })),
+
+  updateRoomStatus: (roomId, status) => set((state) => ({
+    rooms: state.rooms.map((room) =>
+      room.id === roomId ? { ...room, status } : room
     )
   })),
   

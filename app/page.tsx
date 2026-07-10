@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -10,7 +10,9 @@ import { useRooms } from '@/store/useRooms';
 import { branches } from '@/data/branches';
 import RoomCard from '@/components/rooms/RoomCard';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/Button';
+import SafeImage from '@/components/ui/SafeImage';
 
 // Dynamic import Room3DView để tránh lỗi SSR khi render Canvas
 const Room3DView = dynamic(() => import('@/components/rooms/Room3DView'), {
@@ -32,10 +34,11 @@ export default function HomePage() {
   const [quickType, setQuickType] = useState<'all' | 'phong-tro' | 'chung-cu-mini' | 'o-ghep'>('all');
   const [quickPrice, setQuickPrice] = useState<number>(8000000);
 
-  // Lấy 4 phòng trọ nổi bật
-  const featuredRooms = [...rooms]
-    .sort((a, b) => b.rating - a.rating)
-    .slice(0, 4);
+  // P3: useMemo — chỉ sort lại khi rooms thay đổi
+  const featuredRooms = useMemo(
+    () => [...rooms].sort((a, b) => b.rating - a.rating).slice(0, 4),
+    [rooms]
+  );
 
   const handleSearch = () => {
     // Lưu các bộ lọc vào store chung
@@ -58,15 +61,16 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen relative overflow-hidden bg-background">
-      {/* Decorative gradient meshes for visual wow factor */}
-      <div className="absolute top-[-10%] left-[-10%] w-[550px] h-[550px] bg-[radial-gradient(circle,hsl(var(--primary)/0.09)_0%,transparent_70%)] animate-pulse-slow pointer-events-none" />
-      <div className="absolute top-[40%] right-[-10%] w-[600px] h-[600px] bg-[radial-gradient(circle,hsl(var(--accent)/0.08)_0%,transparent_70%)] pointer-events-none" />
+      {/* Aurora gradient background */}
+      <div className="fixed inset-0 bg-aurora opacity-60 pointer-events-none z-0" />
+      <div className="fixed top-[-10%] left-[-10%] w-[550px] h-[550px] bg-[radial-gradient(circle,hsl(var(--primary)/0.07)_0%,transparent_70%)] animate-pulse-slow pointer-events-none z-0" />
+      <div className="fixed top-[40%] right-[-10%] w-[600px] h-[600px] bg-[radial-gradient(circle,hsl(var(--accent)/0.06)_0%,transparent_70%)] pointer-events-none z-0" />
       
       <Navbar />
 
-      <main className="flex-grow">
+      <main className="flex-grow relative z-10">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden pt-12 pb-24 lg:py-28 border-b border-border/40 bg-gradient-to-b from-secondary/15 via-background to-background">
+        <section className="relative overflow-hidden pt-12 pb-24 lg:py-28 border-b border-border/40">
           <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
             {/* Cột trái: Giới thiệu & Tìm kiếm nhanh */}
             <div className="lg:col-span-6 flex flex-col gap-6.5">
@@ -161,15 +165,15 @@ export default function HomePage() {
 
         {/* THỐNG KÊ HỆ THỐNG */}
         <section className="py-12 bg-card border-b border-border/40 relative z-10">
-          <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center stagger-auto">
             {[
-              { num: '4 Chi Nhánh', label: 'Tại Hồ Chí Minh & Hà Nội' },
-              { num: '98.5%', label: 'Cư dân hài lòng' },
-              { num: '24/7 Smart', label: 'Báo sự cố trực tuyến' },
-              { num: 'Online Pay', label: 'Xem & đóng tiền phòng dễ dàng' }
+              { num: '4', suffix: ' Chi Nhánh', label: 'Tại Hồ Chí Minh & Hà Nội' },
+              { num: '98.5%', suffix: '', label: 'Cư dân hài lòng' },
+              { num: '24/7', suffix: ' Smart', label: 'Báo sự cố trực tuyến' },
+              { num: 'Online', suffix: ' Pay', label: 'Xem & đóng tiền phòng dễ dàng' }
             ].map((stat, idx) => (
-              <div key={idx} className="flex flex-col gap-1 p-4 rounded-2xl hover:bg-muted/40 transition-all duration-300 border border-transparent hover:border-border/40">
-                <span className="text-xl md:text-3xl font-black text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">{stat.num}</span>
+              <div key={idx} className="flex flex-col gap-1 p-4 rounded-2xl hover:bg-muted/40 transition-all duration-300 border border-transparent hover:border-border/40 hover:-translate-y-1">
+                <span className="text-xl md:text-3xl font-black text-gradient tracking-tight">{stat.num}<span className="text-base md:text-xl">{stat.suffix}</span></span>
                 <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider mt-0.5">{stat.label}</span>
               </div>
             ))}
@@ -196,12 +200,15 @@ export default function HomePage() {
                       setFilter({ branchId: branch.id, type: 'all', maxPrice: 8000000, search: '', city: 'all', district: 'all' });
                       router.push('/rooms');
                     }}
-                    className="group relative h-72 rounded-2xl overflow-hidden shadow-md border border-border/60 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-xl hover:border-primary/40 bg-card"
+                    className="group relative h-72 rounded-2xl overflow-hidden shadow-md border border-border/60 cursor-pointer transition-all duration-500 hover:scale-[1.03] hover:shadow-xl hover:border-primary/40 bg-card card-tilt"
                   >
-                    <img
+                    {/* BUG6: SafeImage thay cho img — có fallback khi ảnh hỏng */}
+                    <SafeImage
                       src={branch.image}
                       alt={branch.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-106"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent" />
                     
@@ -262,7 +269,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger-auto">
               {[
                 {
                   icon: <ShieldCheck className="text-primary" size={26} />,
@@ -280,7 +287,7 @@ export default function HomePage() {
                   desc: 'Trực quan hóa cấu trúc phòng trọ trực tuyến. Thử phối lại màu tường, màu chăn drap giường, gỗ nội thất trước khi thuê.'
                 }
               ].map((item, idx) => (
-                <div key={idx} className="flex flex-col gap-4.5 p-7 rounded-2xl border border-border/80 bg-background/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:border-primary/30">
+                <div key={idx} className="flex flex-col gap-4.5 p-7 rounded-2xl border border-border/80 bg-background/60 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-400 hover:border-primary/30 glass-card-hover">
                   <div className="w-11.5 h-11.5 rounded-xl bg-primary/10 flex items-center justify-center">
                     {item.icon}
                   </div>
@@ -293,25 +300,8 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* FOOTER */}
-      <footer className="bg-card border-t border-border/40 py-12 text-xs text-muted-foreground font-semibold relative z-10">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-black text-sm shadow-sm">
-              H
-            </div>
-            <div>
-              <span className="font-extrabold text-foreground text-sm block leading-none">HomieStay</span>
-              <span className="text-[9px] text-muted-foreground mt-1.5 block">© 2026. Cổng Thông Tin & Quản Lý Căn Hộ HomieStay Co-living.</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 text-[10px] uppercase tracking-wider font-extrabold">
-            <span className="hover:text-primary cursor-pointer transition-colors">Điều khoản cư dân</span>
-            <span className="hover:text-primary cursor-pointer transition-colors">Báo cáo khẩn cấp</span>
-            <span className="hover:text-primary cursor-pointer transition-colors">Liên hệ ban quản lý</span>
-          </div>
-        </div>
-      </footer>
+      {/* BUG8: Dùng Footer component thống nhất */}
+      <Footer />
     </div>
   );
 }

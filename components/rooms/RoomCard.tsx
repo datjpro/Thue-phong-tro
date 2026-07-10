@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Heart, Star, ChevronLeft, ChevronRight, MapPin, Maximize, Users, Scale } from 'lucide-react';
@@ -10,6 +10,9 @@ import { useFavorites } from '../../store/useFavorites';
 import { useCompare } from '../../store/useCompare';
 import { useToasts } from '../../store/useToasts';
 import { Badge } from '../ui/Badge';
+import SafeImage from '../ui/SafeImage';
+import { formatPriceMillion } from '@/lib/utils';
+import { roomTypeNames, statusNames, statusVariants } from '@/lib/constants';
 
 export default function RoomCard({ room }: { room: Room }) {
   const { currentUser } = useAuth();
@@ -21,12 +24,7 @@ export default function RoomCard({ room }: { room: Room }) {
   const favorited = isFavorite(room.id);
   const comparing = isComparing(room.id);
 
-  // Định dạng giá VNĐ dạng triệu/tháng (ví dụ: 3.2 triệu/tháng)
-  const formatPrice = (price: number) => {
-    return (price / 1000000).toFixed(1).replace('.0', '') + ' triệu';
-  };
-
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!currentUser || currentUser.role !== 'tenant') {
@@ -35,78 +33,70 @@ export default function RoomCard({ room }: { room: Room }) {
     }
     toggleFavorite(room.id);
     addToast(favorited ? 'Đã xóa phòng khỏi danh sách yêu thích' : 'Đã thêm phòng vào danh sách yêu thích', 'success');
-  };
+  }, [currentUser, favorited, room.id, toggleFavorite, addToast]);
 
-  const handleCompareClick = (e: React.MouseEvent) => {
+  const handleCompareClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toggleCompare(room.id);
     addToast(comparing ? 'Đã bỏ so sánh phòng' : 'Đã thêm phòng vào so sánh (Tối đa 3 phòng)', 'info');
-  };
+  }, [comparing, room.id, toggleCompare, addToast]);
 
-  const nextImg = (e: React.MouseEvent) => {
+  const nextImg = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setCurrentImgIndex((prev) => (prev + 1) % room.images.length);
-  };
+  }, [room.images.length]);
 
-  const prevImg = (e: React.MouseEvent) => {
+  const prevImg = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setCurrentImgIndex((prev) => (prev - 1 + room.images.length) % room.images.length);
-  };
-
-  const roomTypeNames = {
-    'phong-tro': 'Phòng trọ',
-    'chung-cu-mini': 'Chung cư mini',
-    'o-ghep': 'Ở ghép / KTX'
-  };
-
-  const statusVariants = {
-    'available': 'success' as const,
-    'reserved': 'warning' as const,
-    'rented': 'danger' as const
-  };
-
-  const statusNames = {
-    'available': 'Còn trống',
-    'reserved': 'Giữ chỗ',
-    'rented': 'Đã thuê'
-  };
+  }, [room.images.length]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -6 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
-      className={`group relative flex flex-col w-full h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm hover:shadow-xl transition-all duration-300 ${
-        comparing ? 'ring-2 ring-primary border-transparent' : ''
+      whileTap={{ scale: 0.98 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className={`group relative flex flex-col w-full h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm hover:shadow-xl transition-all duration-400 card-glow ${
+        comparing ? 'ring-2 ring-primary border-transparent animate-border-glow' : ''
       }`}
     >
       {/* Slider ảnh */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-        <img
+        <SafeImage
           src={room.images[currentImgIndex]}
           alt={room.title}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-106"
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
           loading="lazy"
+          decoding="async"
+          width={600}
+          height={450}
         />
+
+        {/* Gradient overlay bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
 
         {/* Nút lướt ảnh */}
         {room.images.length > 1 && (
           <>
             <button
               onClick={prevImg}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 rounded-full bg-background/70 hover:bg-background backdrop-blur-md p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 rounded-full bg-background/75 hover:bg-background backdrop-blur-md p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 cursor-pointer hover:scale-110 active:scale-95"
+              aria-label="Ảnh trước"
             >
-              <ChevronLeft size={16} className="text-foreground" />
+              <ChevronLeft size={15} className="text-foreground" />
             </button>
             <button
               onClick={nextImg}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full bg-background/70 hover:bg-background backdrop-blur-md p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full bg-background/75 hover:bg-background backdrop-blur-md p-1.5 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 cursor-pointer hover:scale-110 active:scale-95"
+              aria-label="Ảnh tiếp"
             >
-              <ChevronRight size={16} className="text-foreground" />
+              <ChevronRight size={15} className="text-foreground" />
             </button>
           </>
         )}
@@ -117,7 +107,7 @@ export default function RoomCard({ room }: { room: Room }) {
             <span
               key={i}
               className={`h-1 rounded-full transition-all duration-300 ${
-                i === currentImgIndex ? 'w-4 bg-primary' : 'w-1 bg-white/70'
+                i === currentImgIndex ? 'w-5 bg-primary shadow-sm shadow-primary/50' : 'w-1.5 bg-white/70'
               }`}
             />
           ))}
@@ -136,24 +126,26 @@ export default function RoomCard({ room }: { room: Room }) {
         {/* Nút yêu thích */}
         <button
           onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 rounded-full bg-background/75 hover:bg-background backdrop-blur-md p-2 shadow-sm text-muted-foreground hover:text-rose-500 hover:scale-105 active:scale-95 transition-all duration-300 z-10 cursor-pointer border border-border/20"
+          className="absolute top-3 right-3 rounded-full bg-background/75 hover:bg-background backdrop-blur-md p-2 shadow-sm text-muted-foreground hover:text-rose-500 hover:scale-110 active:scale-90 transition-all duration-300 z-10 cursor-pointer border border-border/20"
           title="Yêu thích"
+          aria-label={favorited ? 'Bỏ yêu thích' : 'Thêm yêu thích'}
         >
           <Heart
             size={16}
-            className={`${favorited ? 'fill-rose-500 text-rose-500' : 'text-foreground'}`}
+            className={`transition-all duration-300 ${favorited ? 'fill-rose-500 text-rose-500 scale-110' : 'text-foreground'}`}
           />
         </button>
 
         {/* Nút chọn so sánh */}
         <button
           onClick={handleCompareClick}
-          className={`absolute bottom-3 right-3 rounded-full backdrop-blur-md p-2 shadow-sm hover:scale-105 active:scale-95 transition-all duration-300 z-10 cursor-pointer border ${
-            comparing 
-              ? 'bg-primary text-primary-foreground border-primary glow-shadow-primary scale-105' 
+          className={`absolute bottom-3 right-3 rounded-full backdrop-blur-md p-2 shadow-sm hover:scale-110 active:scale-90 transition-all duration-300 z-10 cursor-pointer border ${
+            comparing
+              ? 'bg-primary text-primary-foreground border-primary glow-shadow-primary scale-105'
               : 'bg-background/75 text-muted-foreground hover:text-primary border-border/20'
           }`}
           title="Chọn so sánh"
+          aria-label={comparing ? 'Bỏ so sánh' : 'Thêm so sánh'}
         >
           <Scale size={15} />
         </button>
@@ -193,13 +185,14 @@ export default function RoomCard({ room }: { room: Room }) {
           <div className="flex flex-col">
             <span className="text-[9px] text-muted-foreground uppercase font-black tracking-wider">Giá thuê</span>
             <div className="flex items-baseline gap-0.5">
-              <span className="text-lg font-black text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{formatPrice(room.price)}</span>
+              <span className="text-lg font-black text-gradient">{formatPriceMillion(room.price)}</span>
               <span className="text-[10px] font-bold text-muted-foreground">/ tháng</span>
             </div>
           </div>
-          
-          <span className="text-[11px] font-extrabold text-primary group-hover:underline flex items-center gap-0.5 transition-all">
-            Chi tiết →
+
+          <span className="text-[11px] font-extrabold text-primary group-hover:underline flex items-center gap-0.5 transition-all group-hover:gap-1.5">
+            Chi tiết
+            <ChevronRight size={12} className="transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
       </Link>

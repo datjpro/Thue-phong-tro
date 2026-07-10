@@ -54,7 +54,7 @@ import { Room } from '@/data/rooms';
 
 export default function LandlordDashboardPage() {
   const { currentUser, loginAs } = useAuth();
-  const { rooms, addRoom, deleteRoom } = useRooms();
+  const { rooms, addRoom, deleteRoom, updateRoomStatus } = useRooms();
   const { bookings, updateBookingStatus } = useBookings();
   const { messages, sendMessage } = useChats();
   const { bills, approveBill, addBill } = useBills();
@@ -157,19 +157,19 @@ export default function LandlordDashboardPage() {
   // Số lượng báo cáo sự cố chưa xử lý xong
   const activeIssuesCount = reports.filter((r) => r.status !== 'resolved').length;
 
-  // Dữ liệu biểu đồ doanh thu theo tháng (từ danh sách bills)
-  const revenueChartData = [
+  // P5: useMemo cho chart data — tránh re-calculate mỗi render
+  const revenueChartData = useMemo(() => [
     { name: 'Tháng 5', DoanhThu: 12.5 },
     { name: 'Tháng 6', DoanhThu: 15.8 },
     { name: 'Tháng 7 (Thu)', DoanhThu: Number((totalRevenueCollected / 1000000).toFixed(1)) }
-  ];
+  ], [totalRevenueCollected]);
 
-  // Dữ liệu biểu đồ Pie trạng thái phòng
-  const pieChartData = [
+  // P5: useMemo cho pie data
+  const pieChartData = useMemo(() => [
     { name: 'Trống', value: availableRoomsCount, color: '#10b981' }, // Emerald
     { name: 'Giữ cọc', value: reservedRoomsCount, color: '#f59e0b' }, // Amber
     { name: 'Đã thuê', value: rentedRoomsCount, color: '#6366f1' }, // Indigo/Purple
-  ];
+  ], [availableRoomsCount, reservedRoomsCount, rentedRoomsCount]);
 
   // Duyệt thanh toán
   const handleApproveBillPayment = (billId: string) => {
@@ -198,13 +198,10 @@ export default function LandlordDashboardPage() {
   const handleApproveBooking = (bookingId: string, roomId: string) => {
     updateBookingStatus(bookingId, 'approved');
     
-    // Tự động chuyển trạng thái phòng nếu cọc giữ chỗ
+    // Tự động chuyển trạng thái phòng nếu cọc giữ chỗ — dùng action thay vì mutate trực tiếp
     const bookingDetail = bookings.find(b => b.id === bookingId);
     if (bookingDetail?.type === 'deposit') {
-      const roomToUpdate = rooms.find(r => r.id === roomId);
-      if (roomToUpdate) {
-        roomToUpdate.status = 'reserved';
-      }
+      updateRoomStatus(roomId, 'reserved');
     }
     addToast('Đã chấp nhận lịch đặt hẹn!', 'success');
   };

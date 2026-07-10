@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useTransition } from 'react';
 import Navbar from '@/components/Navbar';
 import RoomFilter from '@/components/rooms/RoomFilter';
 import RoomCard from '@/components/rooms/RoomCard';
@@ -10,6 +10,7 @@ import { useFilters } from '@/store/useFilters';
 import { useCompare } from '@/store/useCompare';
 import { SlidersHorizontal, Scale, Trash2, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { RoomCardSkeletonGrid } from '@/components/ui/Skeleton';
 
 export default function RoomsPage() {
   const { rooms } = useRooms();
@@ -27,9 +28,11 @@ export default function RoomsPage() {
 
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isPending, startTransition] = useTransition();
   
   // Giả lập số lượng hiển thị (Load More)
   const [visibleCount, setVisibleCount] = useState(8);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   // Bộ lọc dữ liệu phía Client
   const filteredRooms = useMemo(() => {
@@ -80,6 +83,13 @@ export default function RoomsPage() {
         return 0;
       });
   }, [rooms, search, type, maxPrice, amenities, sortBy, branchId]);
+
+  // P4: Skeleton loading khi filter thay đổi
+  useEffect(() => {
+    setIsFiltering(true);
+    const t = setTimeout(() => setIsFiltering(false), 180);
+    return () => clearTimeout(t);
+  }, [search, type, maxPrice, amenities, sortBy, branchId]);
 
   // Reset số lượng hiển thị khi thay đổi bộ lọc
   React.useEffect(() => {
@@ -147,7 +157,10 @@ export default function RoomsPage() {
 
           {/* CỘT PHẢI: LƯỚI CARD PHÒNG */}
           <div className="lg:col-span-9 flex flex-col gap-8">
-            {filteredRooms.length === 0 ? (
+            {/* P4: Skeleton loading khi đang filter */}
+            {isFiltering ? (
+              <RoomCardSkeletonGrid count={Math.min(visibleCount, 6)} />
+            ) : filteredRooms.length === 0 ? (
               /* EMPTY STATE */
               <div className="flex flex-col items-center justify-center text-center py-16 px-4 glass-card border border-border rounded-2xl shadow-sm">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 glow-shadow-primary animate-pulse">

@@ -1,9 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useFilters } from '../../store/useFilters';
 import { branches } from '../../data/branches';
 import { Search, MapPin, BadgeDollarSign, SlidersHorizontal, RotateCcw, Home, Sparkles } from 'lucide-react';
+import { debounce } from '@/lib/utils';
 
 export default function RoomFilter() {
   const {
@@ -15,6 +18,26 @@ export default function RoomFilter() {
     setFilter,
     resetFilters,
   } = useFilters();
+
+  // P1: Local state for search to debounce
+  const [localSearch, setLocalSearch] = useState(search);
+
+  // Sync localSearch if external filter resets
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
+
+  // Debounced setFilter for search — 300ms
+  const debouncedSetSearch = useMemo(
+    () => debounce((...args: unknown[]) => setFilter({ search: args[0] as string }), 300),
+    [setFilter]
+  );
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalSearch(val);
+    debouncedSetSearch(val);
+  }, [debouncedSetSearch]);
 
   const handleAmenityChange = (amenityId: string) => {
     const isSelected = amenities.includes(amenityId);
@@ -51,7 +74,7 @@ export default function RoomFilter() {
           <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider">Bộ lọc phòng trống</h3>
         </div>
         <button
-          onClick={resetFilters}
+          onClick={() => { resetFilters(); setLocalSearch(''); }}
           className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors font-black uppercase tracking-wider cursor-pointer"
         >
           <RotateCcw size={11} />
@@ -59,14 +82,14 @@ export default function RoomFilter() {
         </button>
       </div>
 
-      {/* Tìm kiếm từ khóa */}
+      {/* Tìm kiếm từ khóa — P1: debounced */}
       <div className="flex flex-col gap-1.5">
         <label className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Tìm kiếm phòng:</label>
         <div className="relative">
           <input
             type="text"
-            value={search}
-            onChange={(e) => setFilter({ search: e.target.value })}
+            value={localSearch}
+            onChange={handleSearchChange}
             placeholder="Nhập số phòng, mô tả..."
             className="w-full h-10.5 pl-9.5 pr-3.5 rounded-xl border border-border bg-background/50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-all text-foreground"
           />
@@ -168,11 +191,11 @@ export default function RoomFilter() {
           <Sparkles size={11} className="text-primary" />
           Tiện ích bao gồm:
         </label>
-        <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
           {amenitiesList.map((item) => (
             <label
               key={item.id}
-              className="flex items-center gap-2.5 text-xs font-semibold text-foreground cursor-pointer select-none py-0.5"
+              className="flex items-center gap-2.5 text-xs font-semibold text-foreground cursor-pointer select-none py-0.5 hover:text-primary transition-colors"
             >
               <input
                 type="checkbox"

@@ -26,7 +26,8 @@ import {
   Tv,
   Refrigerator,
   Compass,
-  DollarSign
+  DollarSign,
+  CheckCircle2
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ChatModal from '@/components/rooms/ChatModal';
@@ -547,7 +548,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
                     value={bookingNote}
                     onChange={(e) => setBookingNote(e.target.value)}
                     placeholder="Mô tả cụ thể yêu cầu của bạn (số điện thoại liên hệ phụ, thời gian cụ thể dọn vào, v.v.)..."
-                    rows={3.5}
+                    rows={4}
                     className="w-full p-3.5 rounded-xl border border-border bg-background text-xs font-semibold placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/25 text-foreground shadow-sm"
                   />
                 </div>
@@ -588,7 +589,7 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
       <Dialog isOpen={isSuccessModalOpen} onClose={() => setIsSuccessModalOpen(false)} title="Đăng Ký Thành Công!" size="md">
         <div className="flex flex-col items-center justify-center text-center p-4.5">
           <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center mb-4">
-            <CheckCircleIcon size={30} />
+            <CheckCircle2 size={30} />
           </div>
           <h4 className="text-base font-black text-foreground">
             Gửi yêu cầu {bookingType === 'deposit' ? 'cọc giữ phòng' : 'lịch hẹn xem phòng'} thành công!
@@ -635,22 +636,3 @@ export default function RoomDetailPage({ params }: { params: Promise<{ id: strin
   );
 }
 
-function CheckCircleIcon({ size = 24, ...props }: React.SVGProps<SVGSVGElement> & { size?: number }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <path d="m9 11 3 3L22 4" />
-    </svg>
-  );
-}
