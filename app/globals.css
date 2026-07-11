@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 :root {
+  --font-heading: var(--font-sora);
+  --font-body: var(--font-inter);
+  --color-primary: #FF7A00;
+  --color-primary-dark: #E56A00;
+  --color-ink: #14181F;
+  --color-muted: #6B7280;
+  
   --background: 250 20% 98%;
   --foreground: 250 30% 12%;
   
@@ -26,6 +33,9 @@
   --ring: 263 90% 55%;
   --radius: 1.15rem;
 }
+
+body { font-family: var(--font-body); color: var(--color-ink); }
+h1, h2, h3, .heading { font-family: var(--font-heading); }
 
 .dark {
   --background: 250 25% 6%;
@@ -54,17 +64,24 @@
 }
 
 @theme {
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
+  --color-primary-old: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
+  --color-muted-old: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
