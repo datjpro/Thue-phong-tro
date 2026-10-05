@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { getLocale, getTranslations } from "next-intl/server";
+import { FontSizeSelector } from "@/components/shared/font-size-selector";
 import { LocaleToggle } from "@/components/shared/locale-toggle";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
@@ -39,20 +40,26 @@ export default async function SettingsPage() {
 
         {/* Preferences card */}
         <div className="flex flex-col gap-4">
-          <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm space-y-4">
-            <h3 className="text-base font-bold text-foreground">Tùy chọn giao diện</h3>
-            <div className="space-y-3">
+          <div className="rounded-xl border border-suong bg-mat p-5 shadow-xs space-y-4">
+            <h3 className="text-base font-bold text-muc">Tùy chọn giao diện</h3>
+            <div className="space-y-4">
               <div>
-                <span className="text-xs font-medium text-muted-foreground block mb-1.5">
-                  {t("language")}
+                <span className="text-xs font-medium text-muc-phu block mb-1.5">
+                  Cỡ chữ hiển thị
                 </span>
-                <LocaleToggle current={locale} />
+                <FontSizeSelector />
               </div>
-              <div className="pt-2 border-t border-border/40">
-                <span className="text-xs font-medium text-muted-foreground block mb-1.5">
+              <div className="pt-3 border-t border-suong/60">
+                <span className="text-xs font-medium text-muc-phu block mb-1.5">
                   Chủ đề hiển thị
                 </span>
                 <ThemeToggle />
+              </div>
+              <div className="pt-3 border-t border-suong/60">
+                <span className="text-xs font-medium text-muc-phu block mb-1.5">
+                  {t("language")}
+                </span>
+                <LocaleToggle current={locale} />
               </div>
             </div>
           </div>

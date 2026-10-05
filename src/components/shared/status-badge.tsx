@@ -21,17 +21,17 @@ const styles: Record<BadgeKind, { tone: string; icon: typeof Clock }> = {
   done: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
   active: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
   occupied: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
-  unpaid: { tone: "text-warning border-warning/30 bg-warning/10", icon: Clock },
-  partial: { tone: "text-warning border-warning/30 bg-warning/10", icon: Clock },
-  in_progress: { tone: "text-warning border-warning/30 bg-warning/10", icon: Wrench },
-  maintenance: { tone: "text-warning border-warning/30 bg-warning/10", icon: Wrench },
+  unpaid: { tone: "text-nghe border-nghe/30 bg-nghe/10", icon: Clock },
+  partial: { tone: "text-nghe border-nghe/30 bg-nghe/10", icon: Clock },
+  in_progress: { tone: "text-nghe border-nghe/30 bg-nghe/10", icon: Wrench },
+  maintenance: { tone: "text-nghe border-nghe/30 bg-nghe/10", icon: Wrench },
   overdue: {
-    tone: "text-destructive border-destructive/30 bg-destructive/10",
+    tone: "text-danger border-danger/30 bg-danger/10",
     icon: AlertTriangle,
   },
-  open: { tone: "text-destructive border-destructive/30 bg-destructive/10", icon: AlertTriangle },
+  open: { tone: "text-danger border-danger/30 bg-danger/10", icon: AlertTriangle },
   vacant: { tone: "text-info border-info/30 bg-info/10", icon: CircleDashed },
-  ended: { tone: "text-muted-foreground border-border/70 bg-muted/40", icon: CircleDashed },
+  ended: { tone: "text-muc-phu border-suong bg-mat", icon: CircleDashed },
 };
 
 /** Một bộ trạng thái dùng thống nhất: luôn có biểu tượng + chữ, không dùng màu một mình. */

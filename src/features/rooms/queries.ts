@@ -97,7 +97,13 @@ export async function getRoomDetail(propertyId: string, roomId: string, period: 
 
   const contractTenantRows = contract
     ? await db
-        .select({ id: tenants.id, fullName: tenants.fullName, phone: tenants.phone })
+        .select({
+          id: tenants.id,
+          fullName: tenants.fullName,
+          phone: tenants.phone,
+          idNumber: tenants.idNumber,
+          userId: tenants.userId,
+        })
         .from(contractTenants)
         .innerJoin(tenants, eq(tenants.id, contractTenants.tenantId))
         .where(

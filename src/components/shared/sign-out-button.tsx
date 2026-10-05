@@ -9,10 +9,12 @@ import { authClient } from "@/lib/auth-client";
 export function SignOutButton({
   variant = "ghost",
   size = "sm",
+  showLabel = true,
   className,
 }: {
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
+  showLabel?: boolean;
   className?: string;
 }) {
   const t = useTranslations("auth");
@@ -28,9 +30,10 @@ export function SignOutButton({
         router.refresh();
       }}
       title={t("signOut")}
+      aria-label={t("signOut")}
     >
-      <LogOut size={16} aria-hidden="true" />
-      <span className="text-xs">{t("signOut")}</span>
+      <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
+      {showLabel ? <span className="text-xs">{t("signOut")}</span> : null}
     </Button>
   );
 }

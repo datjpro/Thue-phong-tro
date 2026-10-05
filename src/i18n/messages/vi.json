@@ -93,7 +93,7 @@
     "emptyDesc": "Thêm phòng để bắt đầu quản lý.",
     "noContractTitle": "Phòng chưa có hợp đồng",
     "noContractDesc": "Tạo hợp đồng với người thuê để nhập chỉ số và ra hóa đơn.",
-    "history": "Hóa đơn các tháng trước"
+    "history": "Lịch sử hóa đơn"
   },
   "tenants": {
     "title": "Người thuê",

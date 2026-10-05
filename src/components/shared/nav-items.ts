@@ -20,12 +20,11 @@ export const sidebarNavItems = [
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;
 
-/** 5 tab điều hướng dưới ngón tay cái trên Mobile (< 1024px) */
+/** 4 tab điều hướng dưới ngón tay cái trên Mobile (< 1024px) theo UX-UI 5.1 */
 export const bottomNavItems = [
   { href: "/", key: "overview", icon: LayoutDashboard },
   { href: "/rooms", key: "rooms", icon: Home },
   { href: "/invoices", key: "invoices", icon: Receipt },
-  { href: "/tenants", key: "tenants", icon: Users },
   { href: "/more", key: "more", icon: MoreHorizontal },
 ] as const;
 

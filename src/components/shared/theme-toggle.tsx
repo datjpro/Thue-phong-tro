@@ -8,10 +8,12 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 export function ThemeToggle({
   variant = "ghost",
   size = "sm",
+  showLabel = true,
   className,
 }: {
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
+  showLabel?: boolean;
   className?: string;
 }) {
   const t = useTranslations("settings");
@@ -28,6 +30,8 @@ export function ThemeToggle({
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
+  const label = dark ? t("lightMode") : t("darkMode");
+
   return (
     <Button
       variant={variant}
@@ -35,10 +39,15 @@ export function ThemeToggle({
       onClick={toggle}
       aria-pressed={dark}
       className={className}
-      title={dark ? t("lightMode") : t("darkMode")}
+      title={label}
+      aria-label={label}
     >
-      {dark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
-      <span className="text-xs">{dark ? t("lightMode") : t("darkMode")}</span>
+      {dark ? (
+        <Sun size={16} strokeWidth={1.75} aria-hidden="true" />
+      ) : (
+        <Moon size={16} strokeWidth={1.75} aria-hidden="true" />
+      )}
+      {showLabel ? <span className="text-xs">{label}</span> : null}
     </Button>
   );
 }

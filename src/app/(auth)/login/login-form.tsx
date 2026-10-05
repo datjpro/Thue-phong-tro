@@ -16,11 +16,23 @@ export function LoginForm() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    const identifier = String(data.get("identifier") || "").trim();
+    const password = String(data.get("password") || "").trim();
+
     setPending(true);
     setError(null);
+
+    // Chuẩn hóa tên đăng nhập: nếu nhập số phòng (e.g. "101", "Phòng 101") thì map sang email alias
+    const isEmail = identifier.includes("@");
+    const normalizedIdentifier = identifier
+      .toLowerCase()
+      .replace(/phòng|phong|p\.|\s/gi, "")
+      .trim();
+    const email = isEmail ? identifier : `phong${normalizedIdentifier}@tro.local`;
+
     const { error } = await authClient.signIn.email({
-      email: String(data.get("email")),
-      password: String(data.get("password")),
+      email,
+      password,
     });
     setPending(false);
     if (error) {
@@ -34,13 +46,13 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 text-left">
       <div suppressHydrationWarning>
-        <Label htmlFor="email">{t("email")}</Label>
+        <Label htmlFor="identifier">Tài khoản (Số phòng) hoặc Email</Label>
         <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="admin@example.com"
-          autoComplete="email"
+          id="identifier"
+          name="identifier"
+          type="text"
+          placeholder="Ví dụ: 101 hoặc chutro@example.com"
+          autoComplete="username"
           required
           aria-describedby={error ? "login-error" : undefined}
         />
@@ -51,10 +63,15 @@ export function LoginForm() {
           id="password"
           name="password"
           type="password"
-          placeholder="••••••••"
+          placeholder="Mật khẩu hoặc số CCCD"
           autoComplete="current-password"
           required
         />
+        <p className="mt-1.5 text-[12px] text-muted-foreground">
+          💡 Người thuê phòng đăng nhập bằng{" "}
+          <strong className="font-medium text-foreground">Số phòng</strong> và mật khẩu là{" "}
+          <strong className="font-medium text-foreground">Số CCCD</strong>.
+        </p>
       </div>
       {error ? (
         <p id="login-error" role="alert" className="text-xs font-medium text-destructive">

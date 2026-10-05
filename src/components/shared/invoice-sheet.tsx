@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { formatDate, formatPeriodShort } from "@/lib/dates";
+import { formatDate } from "@/lib/dates";
 import { formatMoney, formatNumber } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -26,21 +26,19 @@ function Line({ label, amount, sub }: { label: string; amount: number; sub?: str
   return (
     <div className="flex items-baseline gap-2 py-2">
       <div className="min-w-0">
-        <p className="text-sm sm:text-base font-medium text-foreground">{label}</p>
-        {sub ? <p className="text-xs text-muted-foreground">{sub}</p> : null}
+        <span className="text-base font-normal text-muc">{label}</span>
+        {sub ? <p className="text-xs text-muc-phu">{sub}</p> : null}
       </div>
       <span
-        className="mb-1.5 min-w-4 flex-1 self-end border-b border-dotted border-border/80"
+        className="mb-1 min-w-4 flex-1 self-end border-b border-dotted border-suong"
         aria-hidden="true"
       />
-      <span className="font-mono text-sm sm:text-base font-semibold tabular-nums text-foreground">
-        {formatMoney(amount)}
-      </span>
+      <span className="text-base font-normal tabular-nums text-muc">{formatMoney(amount)}</span>
     </div>
   );
 }
 
-/** "Tờ hóa đơn tháng": thành phần đặc trưng, được đầu tư thiết kế nhất (UX-UI 7.1). */
+/** "Tờ hóa đơn tháng": Điểm nhấn duy nhất của giao diện (UX-UI 7.1). */
 export function InvoiceSheet({ data, today }: { data: InvoiceSheetData; today: string }) {
   const t = useTranslations();
   const paid = data.paidAmount >= data.total;
@@ -48,46 +46,45 @@ export function InvoiceSheet({ data, today }: { data: InvoiceSheetData; today: s
   const stamp = paid
     ? {
         label: t("status.paid"),
-        tone: "border-success text-success bg-success/15",
+        tone: "border-success text-success bg-success/10",
         Icon: CheckCircle2,
       }
     : overdue
       ? {
           label: t("status.overdue"),
-          tone: "border-destructive text-destructive bg-destructive/15",
+          tone: "border-danger text-danger bg-danger/10",
           Icon: AlertTriangle,
         }
       : {
           label: t("invoices.stampUnpaid"),
-          tone: "border-warning text-warning bg-warning/15",
+          tone: "border-nghe text-nghe bg-nghe/10",
           Icon: Clock,
         };
 
   return (
-    <article className="relative max-w-md rounded-xl border border-border/80 bg-card p-5 sm:p-6 shadow-sm print:border-black print:bg-white print:text-black">
-      <header className="mb-4 pr-28">
-        <h2 className="text-lg font-bold tracking-tight text-foreground print:text-black">
-          {t("invoices.title", { period: formatPeriodShort(data.period) })}
-        </h2>
-        <p className="text-sm text-muted-foreground print:text-gray-600">
-          {data.roomName}
-          {data.tenantName ? ` · ${data.tenantName}` : ""}
-        </p>
-      </header>
-
-      {/* Con dấu trạng thái ở góc tờ hóa đơn */}
-      <div
-        className={cn(
-          "absolute right-4 top-4 flex -rotate-[8deg] items-center gap-1.5 rounded-lg border-2 px-3 py-1 text-xs sm:text-sm font-bold shadow-xs select-none",
-          stamp.tone,
-          paid && "animate-stamp",
-        )}
-      >
-        <stamp.Icon size={16} aria-hidden="true" />
-        <span>{stamp.label}</span>
+    <article className="invoice-sheet-tear relative w-full rounded-[4px] border border-suong bg-mat p-5 pb-7 select-none print:border-black print:bg-white print:text-black">
+      {/* Header phiếu: Mã/kỳ bên trái, Con dấu góc trên bên phải */}
+      <div className="flex items-start justify-between pb-3">
+        <div>
+          <span className="text-xs font-medium text-muc-phu">Phiếu thu tháng</span>
+          <p className="text-base font-semibold text-muc">
+            {data.period.slice(5, 7)}/{data.period.slice(0, 4)}
+          </p>
+        </div>
+        <div
+          className={cn(
+            "flex -rotate-[4deg] items-center gap-1.5 rounded-[6px] border-2 px-2.5 py-0.5 text-xs font-bold tracking-tight select-none",
+            stamp.tone,
+            paid && "animate-stamp",
+          )}
+        >
+          <stamp.Icon size={14} strokeWidth={2} aria-hidden="true" />
+          <span>{stamp.label}</span>
+        </div>
       </div>
 
-      <div className="space-y-0.5 divide-y divide-border/40">
+      {/* Danh sách các khoản: Nhãn ……… Số tiền */}
+      <div className="space-y-0.5 border-t border-suong/70 pt-2">
         <Line label={t("invoices.roomFee")} amount={data.roomFee} />
         <Line
           label={t("invoices.electric")}
@@ -104,23 +101,22 @@ export function InvoiceSheet({ data, today }: { data: InvoiceSheetData; today: s
         ) : null}
       </div>
 
-      <div className="mt-4 border-t-2 border-border/80 pt-4">
+      {/* Đường kẻ đôi trước dòng tổng */}
+      <div className="mt-3 border-t-2 border-double border-suong pt-3">
         <div className="flex items-baseline justify-between">
-          <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("invoices.total")}
-          </p>
-          <p className="text-right text-[28px] sm:text-[34px] font-bold font-mono leading-none tracking-tight text-primary tabular-nums print:text-black">
+          <span className="text-base font-semibold text-muc">{t("invoices.total")}</span>
+          <span className="text-[32px] font-bold leading-none tracking-tight text-muc tabular-nums print:text-black">
             {formatMoney(data.total)}
-          </p>
+          </span>
         </div>
 
         {data.paidAmount > 0 && !paid ? (
-          <p className="mt-2 text-right text-xs font-mono text-muted-foreground">
+          <p className="mt-2 text-right text-xs text-muc-phu tabular-nums">
             {t("invoices.paidSoFar", { amount: formatMoney(data.paidAmount) })}
           </p>
         ) : null}
 
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="mt-2.5 text-xs text-muc-phu">
           {t("invoices.due", { date: formatDate(data.dueDate) })}
         </p>
       </div>

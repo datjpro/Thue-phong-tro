@@ -22,6 +22,8 @@ const headScript = `
 try {
   var t = localStorage.getItem("theme");
   if (t === "dark") document.documentElement.dataset.theme = "dark";
+  var fs = localStorage.getItem("font_size");
+  if (fs) document.documentElement.dataset.fontSize = fs;
 } catch(e) {}
 try {
   var origSet = Element.prototype.setAttribute;

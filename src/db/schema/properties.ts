@@ -21,7 +21,7 @@ export const propertyMembers = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    role: text("role", { enum: ["owner", "manager"] })
+    role: text("role", { enum: ["owner", "manager", "tenant"] })
       .notNull()
       .default("owner"),
   },

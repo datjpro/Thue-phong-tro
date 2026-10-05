@@ -3,81 +3,93 @@
 @theme {
   --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --color-background: #0b1410;
-  --color-foreground: #edf4f0;
-  --color-card: #111e19;
-  --color-card-foreground: #edf4f0;
-  --color-popover: #111e19;
-  --color-popover-foreground: #edf4f0;
-  --color-primary: #1ea37d;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #1c2c25;
-  --color-secondary-foreground: #edf4f0;
-  --color-muted: #202c27;
-  --color-muted-foreground: #91a19a;
-  --color-accent: #1c4033;
-  --color-accent-foreground: #edf4f0;
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #21302a;
-  --color-input: #21302a;
-  --color-ring: #1ea37d;
-  --color-success: #2ba967;
-  --color-warning: #f29e0d;
-  --color-info: #1a9be6;
-  --color-danger: #dc2626;
+  --color-giay: #F5F8F6;
+  --color-mat: #FFFFFF;
+  --color-muc: #14231F;
+  --color-muc-phu: #4C5F59;
+  --color-la: #1D6B57;
+  --color-la-hover: #175646;
+  --color-la-tren: #FFFFFF;
+  --color-nghe: #D99A1E;
+  --color-suong: #DCE5E0;
 
-  /* Legacy aliases for existing templates */
-  --color-giay: #0b1410;
-  --color-mat: #111e19;
-  --color-muc: #edf4f0;
-  --color-muc-phu: #91a19a;
-  --color-la: #1ea37d;
-  --color-la-tren: #ffffff;
-  --color-nghe: #f29e0d;
-  --color-suong: #21302a;
+  --color-success: #2E7D4F;
+  --color-warning: #B7791F;
+  --color-danger: #B42318;
+  --color-info: #2563A8;
+
+  --color-background: var(--color-giay);
+  --color-foreground: var(--color-muc);
+  --color-card: var(--color-mat);
+  --color-card-foreground: var(--color-muc);
+  --color-popover: var(--color-mat);
+  --color-popover-foreground: var(--color-muc);
+  --color-primary: var(--color-la);
+  --color-primary-foreground: var(--color-la-tren);
+  --color-secondary: var(--color-suong);
+  --color-secondary-foreground: var(--color-muc);
+  --color-muted: var(--color-suong);
+  --color-muted-foreground: var(--color-muc-phu);
+  --color-border: var(--color-suong);
+  --color-input: var(--color-suong);
+  --color-ring: var(--color-la);
 
   --radius-control: 8px;
   --radius-panel: 12px;
-  --radius-sheet: 8px;
+  --radius-sheet: 4px;
 }
 
 :root {
-  --background: 160 30% 6%;          /* deep dark green-black */
-  --foreground: 150 10% 95%;
-  --card: 160 25% 9%;
-  --card-foreground: 150 10% 95%;
-  --popover: 160 25% 9%;
-  --popover-foreground: 150 10% 95%;
-  --primary: 160 70% 40%;            /* teal-green chính */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 160 20% 14%;
-  --secondary-foreground: 150 10% 95%;
-  --muted: 160 15% 15%;
-  --muted-foreground: 150 8% 60%;
-  --accent: 160 40% 18%;
-  --accent-foreground: 150 10% 95%;
-  --destructive: 0 70% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 160 20% 16%;
-  --input: 160 20% 16%;
-  --ring: 160 70% 40%;
-  --success: 145 60% 42%;
-  --warning: 40 90% 50%;
-  --info: 200 80% 50%;
+  --color-giay: #F5F8F6;
+  --color-mat: #FFFFFF;
+  --color-muc: #14231F;
+  --color-muc-phu: #4C5F59;
+  --color-la: #1D6B57;
+  --color-la-hover: #175646;
+  --color-la-tren: #FFFFFF;
+  --color-nghe: #D99A1E;
+  --color-suong: #DCE5E0;
+
+  --color-success: #2E7D4F;
+  --color-warning: #B7791F;
+  --color-danger: #B42318;
+  --color-info: #2563A8;
+
+  color-scheme: light;
+}
+
+:root[data-theme="dark"],
+.dark {
+  --color-giay: #0F1A17;
+  --color-mat: #16241F;
+  --color-muc: #E6EFEA;
+  --color-muc-phu: #8A9E96;
+  --color-la: #4FB596;
+  --color-la-hover: #3DA083;
+  --color-la-tren: #0F1A17;
+  --color-nghe: #E5A93C;
+  --color-suong: #23352E;
+
+  --color-success: #349C63;
+  --color-warning: #D48E28;
+  --color-danger: #D93829;
+  --color-info: #3B82F6;
+
   color-scheme: dark;
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
+  background-color: var(--color-giay);
+  color: var(--color-muc);
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
   min-height: 100dvh;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-la);
   outline-offset: 2px;
 }
 
@@ -90,19 +102,54 @@ body {
   }
 }
 
-/* Con dấu "Đã thu": khoảnh khắc nhấn duy nhất của sản phẩm (UX-UI mục 10). */
+/* Con dấu "Đã thu" / "Chưa thu": khoảnh khắc nhấn của sản phẩm (UX-UI mục 10) */
 @keyframes stamp {
   0% {
-    transform: rotate(-8deg) scale(1.6);
+    transform: rotate(-4deg) scale(1.25);
     opacity: 0;
   }
   100% {
-    transform: rotate(-8deg) scale(1);
+    transform: rotate(-4deg) scale(1);
     opacity: 1;
   }
 }
+
 .animate-stamp {
-  animation: stamp 220ms ease-out both;
+  animation: stamp 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Mép dưới răng cưa như phiếu xé cho Tờ hóa đơn tháng */
+.invoice-sheet-tear {
+  position: relative;
+  background-color: var(--color-mat);
+}
+
+.invoice-sheet-tear::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -6px;
+  height: 6px;
+  background-size: 12px 6px;
+  background-repeat: repeat-x;
+  background-image: 
+    linear-gradient(135deg, var(--color-mat) 33.33%, transparent 33.33%),
+    linear-gradient(225deg, var(--color-mat) 33.33%, transparent 33.33%);
+}
+
+/* Cỡ chữ toàn trang (Cài đặt) */
+html[data-font-size="sm"] {
+  font-size: 14px;
+}
+
+html[data-font-size="base"],
+html:not([data-font-size]) {
+  font-size: 16px;
+}
+
+html[data-font-size="lg"] {
+  font-size: 18px;
 }
 
 @media print {
