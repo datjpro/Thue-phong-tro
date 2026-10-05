@@ -33,7 +33,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4 text-left">
-      <div>
+      <div suppressHydrationWarning>
         <Label htmlFor="email">{t("email")}</Label>
         <Input
           id="email"
@@ -44,7 +44,7 @@ export function LoginForm() {
           aria-describedby={error ? "login-error" : undefined}
         />
       </div>
-      <div>
+      <div suppressHydrationWarning>
         <Label htmlFor="password">{t("password")}</Label>
         <Input
           id="password"
