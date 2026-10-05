@@ -17,34 +17,37 @@ export type BadgeKind =
   | "done";
 
 const styles: Record<BadgeKind, { tone: string; icon: typeof Clock }> = {
-  paid: { tone: "text-success border-success/40 bg-success/10", icon: CheckCircle2 },
-  done: { tone: "text-success border-success/40 bg-success/10", icon: CheckCircle2 },
-  active: { tone: "text-success border-success/40 bg-success/10", icon: CheckCircle2 },
-  occupied: { tone: "text-success border-success/40 bg-success/10", icon: CheckCircle2 },
-  unpaid: { tone: "text-warning border-warning/40 bg-warning/10", icon: Clock },
-  partial: { tone: "text-warning border-warning/40 bg-warning/10", icon: Clock },
-  in_progress: { tone: "text-warning border-warning/40 bg-warning/10", icon: Wrench },
-  overdue: { tone: "text-danger border-danger/40 bg-danger/10", icon: AlertTriangle },
-  open: { tone: "text-danger border-danger/40 bg-danger/10", icon: AlertTriangle },
-  vacant: { tone: "text-info border-info/40 bg-info/10", icon: CircleDashed },
-  maintenance: { tone: "text-warning border-warning/40 bg-warning/10", icon: Wrench },
-  ended: { tone: "text-muc-phu border-suong bg-giay", icon: CircleDashed },
+  paid: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
+  done: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
+  active: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
+  occupied: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
+  unpaid: { tone: "text-warning border-warning/30 bg-warning/10", icon: Clock },
+  partial: { tone: "text-warning border-warning/30 bg-warning/10", icon: Clock },
+  in_progress: { tone: "text-warning border-warning/30 bg-warning/10", icon: Wrench },
+  maintenance: { tone: "text-warning border-warning/30 bg-warning/10", icon: Wrench },
+  overdue: {
+    tone: "text-destructive border-destructive/30 bg-destructive/10",
+    icon: AlertTriangle,
+  },
+  open: { tone: "text-destructive border-destructive/30 bg-destructive/10", icon: AlertTriangle },
+  vacant: { tone: "text-info border-info/30 bg-info/10", icon: CircleDashed },
+  ended: { tone: "text-muted-foreground border-border/70 bg-muted/40", icon: CircleDashed },
 };
 
 /** Một bộ trạng thái dùng thống nhất: luôn có biểu tượng + chữ, không dùng màu một mình. */
 export function StatusBadge({ kind, className }: { kind: BadgeKind; className?: string }) {
   const t = useTranslations("status");
-  const { tone, icon: Icon } = styles[kind];
+  const { tone, icon: Icon } = styles[kind] ?? styles.ended;
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium select-none shadow-2xs",
         tone,
         className,
       )}
     >
-      <Icon size={16} aria-hidden="true" />
-      {t(kind)}
+      <Icon size={14} aria-hidden="true" className="shrink-0" />
+      <span>{t(kind)}</span>
     </span>
   );
 }

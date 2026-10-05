@@ -1,7 +1,9 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { PageTransition } from "@/components/shared/page-transition";
 import { buttonVariants } from "@/components/ui/button";
 import { ContractForm } from "@/features/contracts/components/contract-form";
 import { getContractFormOptions } from "@/features/contracts/queries";
@@ -19,8 +21,19 @@ export default async function NewContractPage({
   const options = await getContractFormOptions(propertyId);
 
   return (
-    <>
-      <PageHeader title={t("create")} />
+    <PageTransition className="space-y-6">
+      <div>
+        <Link
+          href="/contracts"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft size={14} />
+          <span>Danh sách hợp đồng</span>
+        </Link>
+      </div>
+
+      <PageHeader title={t("create")} description="Điền thông tin và chỉ số điện nước ban đầu" />
+
       {options.rooms.length === 0 ? (
         <EmptyState title={t("noFreeRoomTitle")} description={t("noFreeRoomDesc")} />
       ) : options.tenants.length === 0 ? (
@@ -28,7 +41,7 @@ export default async function NewContractPage({
           title={t("noTenantTitle")}
           description={t("noTenantDesc")}
           action={
-            <Link href="/tenants" className={buttonVariants()}>
+            <Link href="/tenants" className={buttonVariants({ variant: "primary" })}>
               {t("addTenant")}
             </Link>
           }
@@ -42,6 +55,6 @@ export default async function NewContractPage({
           defaultRoomId={roomId}
         />
       )}
-    </>
+    </PageTransition>
   );
 }

@@ -21,11 +21,11 @@ export function Field({
       <Label htmlFor={id}>{label}</Label>
       {children({ id, describedBy, invalid: Boolean(error) })}
       {error ? (
-        <p id={`${id}-error`} className="mt-1 text-sm text-danger">
+        <p id={`${id}-error`} className="mt-1 text-xs font-medium text-destructive">
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="mt-1 text-sm text-muc-phu">
+        <p id={`${id}-hint`} className="mt-1 text-xs text-muted-foreground">
           {hint}
         </p>
       ) : null}

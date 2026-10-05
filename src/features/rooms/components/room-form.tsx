@@ -29,33 +29,42 @@ export function RoomForm({ propertyId }: { propertyId: string }) {
   return (
     <form
       onSubmit={form.handleSubmit(submit)}
-      className="flex max-w-md flex-col gap-4 rounded-panel border border-suong bg-mat p-4"
+      className="flex max-w-lg flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 shadow-sm"
     >
       <Field id="name" label={t("rooms.name")} error={errors.name && t("errors.required")}>
-        {(p) => <Input id={p.id} aria-invalid={p.invalid} {...form.register("name")} />}
-      </Field>
-      <Field id="floor" label={t("rooms.floor")}>
         {(p) => (
-          <Controller
-            control={form.control}
-            name="floor"
-            render={({ field }) => (
-              <NumberInput id={p.id} value={field.value} onChange={field.onChange} />
-            )}
+          <Input
+            id={p.id}
+            aria-invalid={p.invalid}
+            placeholder="Ví dụ: Phòng 101, P.202..."
+            {...form.register("name")}
           />
         )}
       </Field>
-      <Field id="area" label={t("rooms.area")}>
-        {(p) => (
-          <Controller
-            control={form.control}
-            name="area"
-            render={({ field }) => (
-              <NumberInput id={p.id} value={field.value} onChange={field.onChange} suffix="m²" />
-            )}
-          />
-        )}
-      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field id="floor" label={t("rooms.floor")}>
+          {(p) => (
+            <Controller
+              control={form.control}
+              name="floor"
+              render={({ field }) => (
+                <NumberInput id={p.id} value={field.value} onChange={field.onChange} />
+              )}
+            />
+          )}
+        </Field>
+        <Field id="area" label={t("rooms.area")}>
+          {(p) => (
+            <Controller
+              control={form.control}
+              name="area"
+              render={({ field }) => (
+                <NumberInput id={p.id} value={field.value} onChange={field.onChange} suffix="m²" />
+              )}
+            />
+          )}
+        </Field>
+      </div>
       <Field
         id="rentPrice"
         label={t("rooms.rentPrice")}
@@ -77,8 +86,13 @@ export function RoomForm({ propertyId }: { propertyId: string }) {
           />
         )}
       </Field>
-      <Button type="submit" disabled={pending}>
-        {t("rooms.create")}
+      <Button
+        type="submit"
+        variant="primary"
+        className="min-h-11 text-base mt-2"
+        disabled={pending}
+      >
+        {pending ? "Đang tạo..." : t("rooms.create")}
       </Button>
     </form>
   );

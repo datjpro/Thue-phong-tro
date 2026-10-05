@@ -38,11 +38,11 @@ export function NumberInput({
         onChange={(e) => onChange(parseNumber(e.target.value))}
         aria-invalid={invalid || undefined}
         aria-describedby={describedBy}
-        className={cn("text-right", suffix && "pr-14", className)}
+        className={cn("text-right font-mono tabular-nums", suffix && "pr-14", className)}
         {...props}
       />
       {suffix ? (
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muc-phu">
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs font-medium text-muted-foreground">
           {suffix}
         </span>
       ) : null}

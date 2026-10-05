@@ -48,7 +48,7 @@ export function ContractForm({ propertyId, today, rooms, tenants, defaultRoomId 
   return (
     <form
       onSubmit={form.handleSubmit(submit)}
-      className="flex max-w-lg flex-col gap-4 rounded-panel border border-suong bg-mat p-4"
+      className="flex max-w-lg flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 shadow-sm"
     >
       <Field id="roomId" label={t("contracts.room")} error={errors.roomId && t("errors.required")}>
         {(p) => (
@@ -175,15 +175,20 @@ export function ContractForm({ propertyId, today, rooms, tenants, defaultRoomId 
           )}
         </Field>
       </div>
-      <p className="-mt-2 text-sm text-muc-phu">{t("contracts.initialHint")}</p>
+      <p className="-mt-2 text-xs text-muted-foreground">{t("contracts.initialHint")}</p>
 
       {error ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-xs font-medium text-destructive">
           {error}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending}>
-        {t("contracts.create")}
+      <Button
+        type="submit"
+        variant="primary"
+        className="min-h-11 text-base mt-2"
+        disabled={pending}
+      >
+        {pending ? "Đang tạo..." : t("contracts.create")}
       </Button>
     </form>
   );

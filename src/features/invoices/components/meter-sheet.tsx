@@ -114,9 +114,9 @@ export function MeterSheet(props: Props) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="w-full sm:w-auto">
-        <Zap size={20} aria-hidden="true" />
-        {t("invoices.enterReadings")}
+      <Button onClick={() => setOpen(true)} className="w-full sm:w-auto" variant="primary">
+        <Zap size={18} aria-hidden="true" />
+        <span>{t("invoices.enterReadings")}</span>
       </Button>
       <Sheet
         open={open}
@@ -126,8 +126,9 @@ export function MeterSheet(props: Props) {
           period: props.period.split("-").reverse().join("/"),
         })}
       >
-        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
+        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-5 pt-2">
+          {/* Điện */}
+          <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-4">
             <Field id="electricPrev" label={t("invoices.electricPrev")}>
               {(p) => (
                 <Controller
@@ -145,10 +146,10 @@ export function MeterSheet(props: Props) {
                 />
               )}
             </Field>
-            <label className="flex min-h-11 items-center gap-3 text-sm">
+            <label className="flex min-h-10 items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
               <input
                 type="checkbox"
-                className="size-5 accent-[var(--color-la)]"
+                className="size-4 rounded border-border accent-primary"
                 {...form.register("electricReplaced")}
               />
               {t("invoices.replaced")}
@@ -171,7 +172,7 @@ export function MeterSheet(props: Props) {
                 />
               )}
             </Field>
-            <p aria-live="polite" className="text-sm text-muc-phu">
+            <p aria-live="polite" className="text-xs text-muted-foreground font-mono">
               {eUsage >= 0
                 ? t("invoices.calcLine", {
                     usage: formatNumber(eUsage),
@@ -182,11 +183,12 @@ export function MeterSheet(props: Props) {
                 : null}
             </p>
             {eUsage > ELECTRIC_HIGH ? (
-              <p className="text-sm text-warning">{t("invoices.unusualHigh")}</p>
+              <p className="text-xs text-warning">{t("invoices.unusualHigh")}</p>
             ) : null}
           </div>
 
-          <div className="flex flex-col gap-2">
+          {/* Nước */}
+          <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-4">
             <Field id="waterPrev" label={t("invoices.waterPrev")}>
               {(p) => (
                 <Controller
@@ -204,10 +206,10 @@ export function MeterSheet(props: Props) {
                 />
               )}
             </Field>
-            <label className="flex min-h-11 items-center gap-3 text-sm">
+            <label className="flex min-h-10 items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
               <input
                 type="checkbox"
-                className="size-5 accent-[var(--color-la)]"
+                className="size-4 rounded border-border accent-primary"
                 {...form.register("waterReplaced")}
               />
               {t("invoices.replaced")}
@@ -229,7 +231,7 @@ export function MeterSheet(props: Props) {
                 />
               )}
             </Field>
-            <p aria-live="polite" className="text-sm text-muc-phu">
+            <p aria-live="polite" className="text-xs text-muted-foreground font-mono">
               {wUsage >= 0
                 ? t("invoices.calcLine", {
                     usage: formatNumber(wUsage),
@@ -240,46 +242,60 @@ export function MeterSheet(props: Props) {
                 : null}
             </p>
             {wUsage > WATER_HIGH ? (
-              <p className="text-sm text-warning">{t("invoices.unusualHigh")}</p>
+              <p className="text-xs text-warning">{t("invoices.unusualHigh")}</p>
             ) : null}
           </div>
 
           {invalidReading ? (
-            <p role="alert" className="text-sm text-warning">
+            <p role="alert" className="text-xs font-medium text-warning">
               {t("invoices.lowerWarning")}
             </p>
           ) : null}
 
-          <Field id="otherFee" label={t("invoices.otherFee")}>
-            {(p) => (
-              <Controller
-                control={form.control}
-                name="otherFee"
-                render={({ field }) => (
-                  <NumberInput id={p.id} value={field.value} onChange={field.onChange} suffix="₫" />
-                )}
-              />
-            )}
-          </Field>
-          {v.otherFee > 0 ? (
-            <Field id="otherFeeNote" label={t("invoices.otherFeeNote")}>
-              {(p) => <Input id={p.id} {...form.register("otherFeeNote")} />}
+          {/* Phí khác */}
+          <div className="space-y-3">
+            <Field id="otherFee" label={t("invoices.otherFee")}>
+              {(p) => (
+                <Controller
+                  control={form.control}
+                  name="otherFee"
+                  render={({ field }) => (
+                    <NumberInput
+                      id={p.id}
+                      value={field.value}
+                      onChange={field.onChange}
+                      suffix="₫"
+                    />
+                  )}
+                />
+              )}
             </Field>
-          ) : null}
+            {v.otherFee > 0 ? (
+              <Field id="otherFeeNote" label={t("invoices.otherFeeNote")}>
+                {(p) => <Input id={p.id} {...form.register("otherFeeNote")} />}
+              </Field>
+            ) : null}
+          </div>
 
-          <div className="rounded-control border border-suong bg-giay p-3">
-            <p className="text-sm text-muc-phu">{t("invoices.estimatedTotal")}</p>
-            <p className="text-right text-[32px] font-bold leading-10">
+          {/* Tổng tạm tính */}
+          <div className="rounded-xl border border-border/80 bg-muted/30 p-4">
+            <p className="text-xs text-muted-foreground">{t("invoices.estimatedTotal")}</p>
+            <p className="text-right text-2xl sm:text-3xl font-bold font-mono text-primary tabular-nums">
               {preview ? formatMoney(preview.total) : "—"}
             </p>
           </div>
 
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-xs font-medium text-destructive">
               {error}
             </p>
           ) : null}
-          <Button type="submit" disabled={pending || invalidReading}>
+
+          <Button
+            type="submit"
+            disabled={pending || invalidReading}
+            className="w-full min-h-12 text-base"
+          >
             {t("invoices.saveAndCreate")}
           </Button>
         </form>

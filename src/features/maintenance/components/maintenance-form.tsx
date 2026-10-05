@@ -37,12 +37,17 @@ export function MaintenanceForm({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} disabled={rooms.length === 0}>
-        <Plus size={20} aria-hidden="true" />
-        {t("maintenance.add")}
+      <Button
+        onClick={() => setOpen(true)}
+        disabled={rooms.length === 0}
+        variant="primary"
+        className="w-full sm:w-auto"
+      >
+        <Plus size={18} aria-hidden="true" />
+        <span>{t("maintenance.add")}</span>
       </Button>
       <Sheet open={open} onOpenChange={setOpen} title={t("maintenance.add")}>
-        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-4">
+        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-4 pt-2">
           <Field id="roomId" label={t("contracts.room")}>
             {(p) => (
               <Select id={p.id} {...form.register("roomId")}>
@@ -59,13 +64,31 @@ export function MaintenanceForm({
             label={t("maintenance.titleLabel")}
             error={errors.title && t("errors.required")}
           >
-            {(p) => <Input id={p.id} aria-invalid={p.invalid} {...form.register("title")} />}
+            {(p) => (
+              <Input
+                id={p.id}
+                aria-invalid={p.invalid}
+                placeholder="Ví dụ: Hỏng bóng đèn, rò nước..."
+                {...form.register("title")}
+              />
+            )}
           </Field>
           <Field id="description" label={t("maintenance.description")}>
-            {(p) => <Textarea id={p.id} {...form.register("description")} />}
+            {(p) => (
+              <Textarea
+                id={p.id}
+                placeholder="Chi tiết tình trạng và ghi chú thêm..."
+                {...form.register("description")}
+              />
+            )}
           </Field>
-          <Button type="submit" disabled={pending}>
-            {t("maintenance.create")}
+          <Button
+            type="submit"
+            variant="primary"
+            className="min-h-11 mt-2 text-base"
+            disabled={pending}
+          >
+            {pending ? "Đang lưu..." : t("maintenance.create")}
           </Button>
         </form>
       </Sheet>

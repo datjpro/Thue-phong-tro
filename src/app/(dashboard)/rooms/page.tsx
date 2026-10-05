@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { PageTransition } from "@/components/shared/page-transition";
 import { buttonVariants } from "@/components/ui/button";
 import { RoomList } from "@/features/rooms/components/room-list";
 import { listRooms } from "@/features/rooms/queries";
@@ -15,25 +16,35 @@ export default async function RoomsPage() {
   const t = await getTranslations("rooms");
   const rows = await listRooms(propertyId, currentPeriod());
 
-  // Giao diện 1 phòng chỉ là cách hiển thị: nhảy thẳng tới chi tiết, không đổi logic.
+  // Giao diện 1 phòng: chuyển thẳng tới chi tiết (AGENTS.md & UX-UI 5.2)
   if (rows.length === 1) redirect(`/rooms/${rows[0].id}`);
 
   return (
-    <>
+    <PageTransition>
       <PageHeader
         title={t("title")}
+        description={`${rows.length} phòng đang quản lý`}
         action={
-          <Link href="/rooms/new" className={buttonVariants()}>
-            <Plus size={20} aria-hidden="true" />
-            {t("add")}
+          <Link href="/rooms/new" className={buttonVariants({ variant: "primary" })}>
+            <Plus size={18} aria-hidden="true" />
+            <span>{t("add")}</span>
           </Link>
         }
       />
       {rows.length === 0 ? (
-        <EmptyState title={t("emptyTitle")} description={t("emptyDesc")} />
+        <EmptyState
+          title={t("emptyTitle")}
+          description={t("emptyDesc")}
+          action={
+            <Link href="/rooms/new" className={buttonVariants({ variant: "primary" })}>
+              <Plus size={18} aria-hidden="true" />
+              <span>{t("add")}</span>
+            </Link>
+          }
+        />
       ) : (
         <RoomList rows={rows} today={todayVn()} />
       )}
-    </>
+    </PageTransition>
   );
 }
