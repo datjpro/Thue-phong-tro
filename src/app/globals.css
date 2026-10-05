@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+
+  --color-giay: #f5f8f6;
+  --color-mat: #ffffff;
+  --color-muc: #14231f;
+  --color-muc-phu: #4c5f59;
+  --color-la: #1d6b57;
+  --color-la-tren: #ffffff;
+  --color-nghe: #d99a1e;
+  --color-suong: #dce5e0;
+
+  --color-success: #2e7d4f;
+  --color-warning: #b7791f;
+  --color-danger: #b42318;
+  --color-info: #2563a8;
+
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-sheet: 4px;
+}
+
+/* Dark mode chỉnh tay từng token, không đảo màu tự động. */
+:root[data-theme="dark"] {
+  --color-giay: #0f1a17;
+  --color-mat: #16241f;
+  --color-muc: #e6efea;
+  --color-muc-phu: #9fb4ac;
+  --color-la: #4fb596;
+  --color-la-tren: #0f1a17;
+  --color-nghe: #e8b04a;
+  --color-suong: #2a3b35;
+  --color-success: #5fc283;
+  --color-warning: #e0a94a;
+  --color-danger: #f0776b;
+  --color-info: #6ea8e6;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-giay);
+  color: var(--color-muc);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-la);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Con dấu "Đã thu": khoảnh khắc nhấn duy nhất của sản phẩm (UX-UI mục 10). */
+@keyframes stamp {
+  0% {
+    transform: rotate(-8deg) scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: rotate(-8deg) scale(1);
+    opacity: 1;
+  }
+}
+.animate-stamp {
+  animation: stamp 220ms ease-out both;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
