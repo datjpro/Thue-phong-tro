@@ -59,10 +59,11 @@ export function PaymentSheet({
           setAmount(remaining);
           setOpen(true);
         }}
+        variant="primary"
         className="w-full sm:w-auto"
       >
-        <Banknote size={20} aria-hidden="true" />
-        {t("invoices.recordPayment")}
+        <Banknote size={18} aria-hidden="true" />
+        <span>{t("invoices.recordPayment")}</span>
       </Button>
       <Sheet
         open={open}
@@ -70,7 +71,7 @@ export function PaymentSheet({
         title={t("invoices.recordPayment")}
         description={t("invoices.remaining", { amount: formatMoney(remaining) })}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 pt-2">
           <div>
             <Label htmlFor="amount">{t("invoices.amount")}</Label>
             <NumberInput
@@ -94,12 +95,17 @@ export function PaymentSheet({
             </Select>
           </div>
           {error ? (
-            <p id="pay-error" role="alert" className="text-sm text-danger">
+            <p id="pay-error" role="alert" className="text-xs font-medium text-destructive">
               {error}
             </p>
           ) : null}
-          <Button disabled={pending || amount <= 0} onClick={save}>
-            {t("invoices.recordPayment")}
+          <Button
+            variant="primary"
+            className="w-full min-h-12 mt-2"
+            disabled={pending || amount <= 0}
+            onClick={save}
+          >
+            {pending ? "Đang ghi nhận..." : t("invoices.recordPayment")}
           </Button>
         </div>
       </Sheet>

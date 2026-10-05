@@ -39,6 +39,7 @@ export function LoginForm() {
           id="email"
           name="email"
           type="email"
+          placeholder="admin@example.com"
           autoComplete="email"
           required
           aria-describedby={error ? "login-error" : undefined}
@@ -50,17 +51,23 @@ export function LoginForm() {
           id="password"
           name="password"
           type="password"
+          placeholder="••••••••"
           autoComplete="current-password"
           required
         />
       </div>
       {error ? (
-        <p id="login-error" role="alert" className="text-sm text-danger">
+        <p id="login-error" role="alert" className="text-xs font-medium text-destructive">
           {error}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending}>
-        {t("signIn")}
+      <Button
+        type="submit"
+        variant="primary"
+        className="min-h-12 text-base mt-2"
+        disabled={pending}
+      >
+        {pending ? "Đang đăng nhập..." : t("signIn")}
       </Button>
     </form>
   );

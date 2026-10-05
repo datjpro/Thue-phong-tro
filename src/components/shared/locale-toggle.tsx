@@ -11,7 +11,8 @@ export function LocaleToggle({ current }: { current: "vi" | "en" }) {
       {(["vi", "en"] as const).map((l) => (
         <Button
           key={l}
-          variant={current === l ? "primary" : "secondary"}
+          size="sm"
+          variant={current === l ? "primary" : "outline"}
           aria-pressed={current === l}
           onClick={() => setLocale(l)}
         >

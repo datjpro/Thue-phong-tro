@@ -34,7 +34,7 @@ export function SettingsForm({
   return (
     <form
       onSubmit={form.handleSubmit(submit)}
-      className="flex max-w-md flex-col gap-4 rounded-panel border border-suong bg-mat p-4"
+      className="flex max-w-lg flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 shadow-sm"
     >
       <Field
         id="name"
@@ -107,8 +107,13 @@ export function SettingsForm({
           />
         )}
       </Field>
-      <Button type="submit" disabled={pending}>
-        {t("settings.save")}
+      <Button
+        type="submit"
+        variant="primary"
+        className="min-h-11 text-base mt-2"
+        disabled={pending}
+      >
+        {pending ? "Đang lưu..." : t("settings.save")}
       </Button>
     </form>
   );

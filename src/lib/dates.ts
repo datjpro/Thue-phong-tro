@@ -20,6 +20,11 @@ export function prevPeriod(period: string): string {
   return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
 }
 
+export function nextPeriod(period: string): string {
+  const [y, m] = period.split("-").map(Number);
+  return m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+}
+
 export function daysInPeriod(period: string): number {
   const [y, m] = period.split("-").map(Number);
   return new Date(Date.UTC(y, m, 0)).getUTCDate();

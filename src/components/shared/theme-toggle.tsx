@@ -3,14 +3,22 @@
 import { Moon, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 
-export function ThemeToggle() {
+export function ThemeToggle({
+  variant = "ghost",
+  size = "sm",
+  className,
+}: {
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
+  className?: string;
+}) {
   const t = useTranslations("settings");
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
-    setDark(document.documentElement.dataset.theme === "dark");
+    setDark(document.documentElement.dataset.theme !== "light");
   }, []);
 
   function toggle() {
@@ -21,9 +29,16 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button variant="secondary" onClick={toggle} aria-pressed={dark}>
-      {dark ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}
-      {dark ? t("lightMode") : t("darkMode")}
+    <Button
+      variant={variant}
+      size={size}
+      onClick={toggle}
+      aria-pressed={dark}
+      className={className}
+      title={dark ? t("lightMode") : t("darkMode")}
+    >
+      {dark ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
+      <span className="text-xs">{dark ? t("lightMode") : t("darkMode")}</span>
     </Button>
   );
 }
