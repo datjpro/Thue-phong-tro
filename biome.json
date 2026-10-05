@@ -1,0 +1,9 @@
+{
+  "files": { "includes": ["src/**", "e2e/**", "*.ts", "*.json", "!**/*.css", "!next-env.d.ts"] },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "linter": {
+    "enabled": true,
+    "rules": { "preset": "recommended", "suspicious": { "noExplicitAny": "error" } }
+  },
+  "assist": { "enabled": false }
+}
