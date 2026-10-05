@@ -127,3 +127,13 @@ Quy tắc đặt code:
 2. **Mở rộng nhẹ**: nhiều người thuê, hợp đồng, báo sửa chữa, xuất PDF, nhắc đóng tiền.
 3. **Nhiều phòng / nhiều nhà trọ**: danh sách phòng, dashboard tổng hợp, phân quyền.
 4. **Nâng cao**: tách monorepo bằng pnpm workspaces (`apps/web`, `packages/db`, `packages/ui`) nếu thêm app mobile hoặc cổng người thuê.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
