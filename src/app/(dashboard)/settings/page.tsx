@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { CreditCard, Home, Phone, User } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { FontSizeSelector } from "@/components/shared/font-size-selector";
 import { LocaleToggle } from "@/components/shared/locale-toggle";
@@ -6,37 +7,91 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { db } from "@/db";
-import { properties } from "@/db/schema";
+import { properties, tenants } from "@/db/schema";
+import { SecurityPanel } from "@/features/settings/components/security-panel";
 import { SettingsForm } from "@/features/settings/components/settings-form";
+import { listAuditLogs } from "@/features/settings/queries";
 import { requireContext } from "@/lib/session";
 
 export default async function SettingsPage() {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
   const t = await getTranslations("settings");
   const locale = (await getLocale()) === "en" ? "en" : "vi";
+  const isTenant = ctx.role === "tenant";
+
   const [property] = await db
     .select()
     .from(properties)
-    .where(eq(properties.id, propertyId))
+    .where(eq(properties.id, ctx.propertyId))
     .limit(1);
 
-  return (
-    <PageTransition className="space-y-6">
-      <PageHeader title={t("title")} description={t("subtitle")} />
+  let tenantProfile = null;
+  if (isTenant && ctx.tenantId) {
+    const [tp] = await db.select().from(tenants).where(eq(tenants.id, ctx.tenantId)).limit(1);
+    tenantProfile = tp;
+  }
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        {/* Settings form */}
-        <div>
-          <SettingsForm
-            propertyId={propertyId}
-            defaults={{
-              name: property.name,
-              electricPrice: property.electricPrice,
-              waterPrice: property.waterPrice,
-              dueDay: property.dueDay,
-            }}
-          />
-        </div>
+  const auditLogs = !isTenant ? await listAuditLogs(ctx.propertyId, 15) : [];
+
+  return (
+    <PageTransition className="space-y-8">
+      <PageHeader
+        title={t("title")}
+        description={isTenant ? "Tùy chọn giao diện và thông tin tài khoản" : t("subtitle")}
+      />
+
+      <div className={isTenant ? "max-w-xl space-y-6" : "grid gap-6 lg:grid-cols-[1fr_360px]"}>
+        {/* For Landlord: Settings form */}
+        {!isTenant ? (
+          <div>
+            <SettingsForm
+              propertyId={ctx.propertyId}
+              defaults={{
+                name: property.name,
+                electricPrice: property.electricPrice,
+                waterPrice: property.waterPrice,
+                dueDay: property.dueDay,
+              }}
+            />
+          </div>
+        ) : (
+          /* For Tenant: Personal Info Card */
+          <div className="rounded-xl border border-suong bg-mat p-5 shadow-xs space-y-3">
+            <h3 className="text-base font-bold text-muc">Thông tin người thuê</h3>
+            <div className="divide-y divide-suong text-sm">
+              <div className="flex items-center justify-between py-2.5">
+                <span className="flex items-center gap-2 text-muc-phu">
+                  <User size={15} /> Họ và tên
+                </span>
+                <span className="font-semibold text-muc">
+                  {tenantProfile?.fullName ?? ctx.userName}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2.5">
+                <span className="flex items-center gap-2 text-muc-phu">
+                  <Home size={15} /> Phòng đang thuê
+                </span>
+                <span className="font-semibold text-muc">{ctx.roomName ?? "Chưa phân phòng"}</span>
+              </div>
+              {tenantProfile?.idNumber ? (
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="flex items-center gap-2 text-muc-phu">
+                    <CreditCard size={15} /> Số CCCD / Định danh
+                  </span>
+                  <span className="font-mono font-medium text-muc">{tenantProfile.idNumber}</span>
+                </div>
+              ) : null}
+              {tenantProfile?.phone ? (
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="flex items-center gap-2 text-muc-phu">
+                    <Phone size={15} /> Số điện thoại
+                  </span>
+                  <span className="font-mono font-medium text-muc">{tenantProfile.phone}</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
 
         {/* Preferences card */}
         <div className="flex flex-col gap-4">
@@ -65,6 +120,17 @@ export default async function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Security & Audit Logs Section */}
+      <section
+        aria-labelledby="security-section-title"
+        className="space-y-3 pt-4 border-t border-border/60"
+      >
+        <h2 id="security-section-title" className="text-lg font-bold text-foreground">
+          Bảo mật & An toàn dữ liệu
+        </h2>
+        <SecurityPanel propertyId={ctx.propertyId} auditLogs={auditLogs} isTenant={isTenant} />
+      </section>
     </PageTransition>
   );
 }

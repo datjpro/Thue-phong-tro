@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { propertyMembers, rooms, tenants, user } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
+import { logAuditEvent } from "@/lib/audit";
 import { auth } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { assertMember, requireContext } from "@/lib/session";
 import { type TenantInput, tenantSchema } from "./schemas";
 import { formatTenantEmail, formatTenantUsername } from "./utils";
@@ -16,6 +18,9 @@ export async function createTenant(
 ): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireContext();
   if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+
+  const rateCheck = checkRateLimit(`tenant:${ctx.userId}`, { limit: 20, windowMs: 60000 });
+  if (!rateCheck.success) return fail("rateLimitExceeded");
 
   const parsed = tenantSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
@@ -29,6 +34,15 @@ export async function createTenant(
       idNumber: parsed.data.idNumber || null,
     })
     .returning({ id: tenants.id });
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "create_tenant",
+    resourceType: "tenant",
+    resourceId: row.id,
+    details: { fullName: parsed.data.fullName },
+  });
 
   revalidatePath("/tenants");
   return success({ id: row.id });
@@ -62,6 +76,9 @@ export async function provisionTenantAccount(
 > {
   const ctx = await requireContext();
   if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+
+  const rateCheck = checkRateLimit(`provision:${ctx.userId}`, { limit: 10, windowMs: 60000 });
+  if (!rateCheck.success) return fail("rateLimitExceeded");
 
   // 1. Kiểm tra người thuê và CCCD
   const [tenant] = await db
@@ -123,6 +140,15 @@ export async function provisionTenantAccount(
       });
     }
   }
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "grant_tenant_account",
+    resourceType: "tenant",
+    resourceId: tenantId,
+    details: { roomName: room.name, tenantName: tenant.fullName, email },
+  });
 
   revalidatePath(`/rooms/${roomId}`);
   revalidatePath("/tenants");

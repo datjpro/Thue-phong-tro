@@ -1,4 +1,5 @@
 import { Building2, CreditCard, Phone, User } from "lucide-react";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
@@ -9,7 +10,10 @@ import { listTenants } from "@/features/tenants/queries";
 import { requireContext } from "@/lib/session";
 
 export default async function TenantsPage() {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
+  if (ctx.role === "tenant") redirect("/");
+
+  const { propertyId } = ctx;
   const t = await getTranslations("tenants");
   const rows = await listTenants(propertyId);
 

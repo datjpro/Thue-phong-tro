@@ -14,7 +14,12 @@ import {
   Wifi,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { bottomNavItems, sidebarNavItems } from "./nav-items";
+import {
+  bottomNavItems,
+  sidebarNavItems,
+  tenantBottomNavItems,
+  tenantSidebarNavItems,
+} from "./nav-items";
 import { SignOutButton } from "./sign-out-button";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -22,10 +27,17 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function Sidebar() {
+interface NavProps {
+  role?: "owner" | "manager" | "tenant";
+  roomName?: string | null;
+}
+
+export function Sidebar({ role = "owner", roomName }: NavProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const isTenant = role === "tenant";
+  const items = isTenant ? tenantSidebarNavItems : sidebarNavItems;
 
   useEffect(() => {
     try {
@@ -73,7 +85,13 @@ export function Sidebar() {
                   <span className="truncate text-base font-bold tracking-tight text-muc">
                     {t("brand")}
                   </span>
-                  <span className="truncate text-[11px] text-muc-phu">Quản lý phòng trọ</span>
+                  <span className="truncate text-[11px] text-muc-phu font-medium">
+                    {isTenant
+                      ? roomName
+                        ? `Phòng ${roomName}`
+                        : t("tenantPortal")
+                      : "Quản lý phòng trọ"}
+                  </span>
                 </div>
               ) : null}
             </Link>
@@ -94,9 +112,9 @@ export function Sidebar() {
             </button>
           </div>
 
-          {/* Nav links in exact order */}
+          {/* Nav links */}
           <nav className="flex flex-col gap-0.5" aria-label="Menu chính">
-            {sidebarNavItems.map(({ href, key, icon: Icon }) => {
+            {items.map(({ href, key, icon: Icon }) => {
               const active = isActive(pathname, href);
               const label = t(key);
               return (
@@ -151,8 +169,9 @@ export function Sidebar() {
   );
 }
 
-export function MobileTopBar() {
+export function MobileTopBar({ role = "owner", roomName }: NavProps) {
   const t = useTranslations("nav");
+  const isTenant = role === "tenant";
 
   return (
     <header className="no-print sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-suong bg-mat px-4 lg:hidden">
@@ -160,7 +179,16 @@ export function MobileTopBar() {
         <div className="flex size-8 items-center justify-center rounded-lg bg-la/10 text-la">
           <Building2 size={18} strokeWidth={1.75} aria-hidden="true" />
         </div>
-        <span className="text-base font-bold tracking-tight text-muc">{t("brand")}</span>
+        <div className="flex flex-col">
+          <span className="text-base font-bold tracking-tight text-muc leading-tight">
+            {t("brand")}
+          </span>
+          {isTenant ? (
+            <span className="text-[10px] text-muc-phu font-medium">
+              {roomName ? `Phòng ${roomName}` : t("tenantPortal")}
+            </span>
+          ) : null}
+        </div>
       </Link>
       <div className="flex items-center gap-1">
         <ThemeToggle showLabel={false} size="icon" />
@@ -169,16 +197,18 @@ export function MobileTopBar() {
   );
 }
 
-export function BottomNav() {
+export function BottomNav({ role = "owner" }: NavProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const isTenant = role === "tenant";
+  const items = isTenant ? tenantBottomNavItems : bottomNavItems;
 
   return (
     <nav
       aria-label="Thanh điều hướng dưới"
       className="no-print fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-4 border-t border-suong bg-mat pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      {bottomNavItems.map(({ href, key, icon: Icon }) => {
+      {items.map(({ href, key, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link

@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { InvoiceSheet } from "@/components/shared/invoice-sheet";
 import { PageTransition } from "@/components/shared/page-transition";
@@ -17,7 +17,10 @@ import { requireContext } from "@/lib/session";
 
 export default async function RoomDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
+  if (ctx.role === "tenant") redirect("/");
+
+  const { propertyId } = ctx;
   const t = await getTranslations();
   const period = currentPeriod();
   const today = todayVn();

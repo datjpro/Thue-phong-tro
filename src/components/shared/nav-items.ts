@@ -28,12 +28,25 @@ export const bottomNavItems = [
   { href: "/more", key: "more", icon: MoreHorizontal },
 ] as const;
 
-/** Các mục còn lại xuất hiện trong trang/menu "Thêm" */
-export const moreItems = [
-  { href: "/contracts", key: "contracts", icon: FileText },
+/** 4 mục menu dành riêng cho Người thuê */
+export const tenantSidebarNavItems = [
+  { href: "/", key: "myRoom", icon: Home },
+  { href: "/invoices", key: "invoices", icon: Receipt },
   { href: "/maintenance", key: "maintenance", icon: Wrench },
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;
 
-// Legacy export compatibility
-export const mainNavItems = bottomNavItems.slice(0, 4);
+export const tenantBottomNavItems = [
+  { href: "/", key: "myRoom", icon: Home },
+  { href: "/invoices", key: "invoices", icon: Receipt },
+  { href: "/maintenance", key: "maintenance", icon: Wrench },
+  { href: "/settings", key: "settings", icon: Settings },
+] as const;
+
+/** Các mục trong trang Xem thêm trên mobile */
+export const moreItems = [
+  { href: "/tenants", key: "tenants", icon: Users },
+  { href: "/contracts", key: "contracts", icon: FileText },
+  { href: "/maintenance", key: "maintenance", icon: Wrench },
+  { href: "/settings", key: "settings", icon: Settings },
+] as const;

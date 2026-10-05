@@ -2,17 +2,17 @@ import { BottomNav, DesktopBottomBar, MobileTopBar, Sidebar } from "@/components
 import { requireContext } from "@/lib/session";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  await requireContext();
+  const ctx = await requireContext();
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row bg-background text-foreground">
-      <Sidebar />
+      <Sidebar role={ctx.role} roomName={ctx.roomName} />
       <div className="flex flex-1 flex-col min-w-0">
-        <MobileTopBar />
+        <MobileTopBar role={ctx.role} roomName={ctx.roomName} />
         <main className="min-w-0 flex-1 px-4 pb-24 pt-5 sm:px-6 sm:pb-24 lg:px-8 lg:pb-12 lg:pt-8">
           <div className="mx-auto max-w-[1200px] w-full">{children}</div>
         </main>
       </div>
-      <BottomNav />
+      <BottomNav role={ctx.role} />
       <DesktopBottomBar />
     </div>
   );

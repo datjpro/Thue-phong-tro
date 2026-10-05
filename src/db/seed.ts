@@ -2,6 +2,7 @@ import "dotenv/config";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  auditLogs,
   contractTenants,
   contracts,
   invoices,
@@ -59,6 +60,7 @@ async function main() {
   }
 
   // 3. Làm sạch dữ liệu cũ để nạp lại dữ liệu chuẩn xác
+  await db.delete(auditLogs).where(eq(auditLogs.propertyId, property.id));
   await db.delete(maintenanceRequests).where(eq(maintenanceRequests.propertyId, property.id));
   await db.delete(payments).where(eq(payments.propertyId, property.id));
   await db.delete(invoices).where(eq(invoices.propertyId, property.id));
@@ -349,9 +351,18 @@ async function main() {
 
   const period = currentPeriod();
 
-  // 7. Chỉ số điện nước (Meter Readings)
-  // Phòng 101: đã ghi tháng 10
+  // 7. Chỉ số điện nước (Meter Readings) lịch sử 3 tháng gần nhất (07, 08, 09) và tháng hiện tại (10)
+  // Phòng 101
   await db.insert(meterReadings).values([
+    {
+      propertyId: property.id,
+      roomId: r101.id,
+      period: "2026-07",
+      electricPrev: 1040,
+      electricCurr: 1090,
+      waterPrev: 71,
+      waterCurr: 74,
+    },
     {
       propertyId: property.id,
       roomId: r101.id,
@@ -381,42 +392,150 @@ async function main() {
     },
   ]);
 
-  // Phòng 102: đã ghi tháng 10
-  await db.insert(meterReadings).values({
-    propertyId: property.id,
-    roomId: r102.id,
-    period: period,
-    electricPrev: 850,
-    electricCurr: 940,
-    waterPrev: 45,
-    waterCurr: 49,
-  });
+  // Phòng 102
+  await db.insert(meterReadings).values([
+    {
+      propertyId: property.id,
+      roomId: r102.id,
+      period: "2026-07",
+      electricPrev: 680,
+      electricCurr: 760,
+      waterPrev: 37,
+      waterCurr: 41,
+    },
+    {
+      propertyId: property.id,
+      roomId: r102.id,
+      period: "2026-08",
+      electricPrev: 760,
+      electricCurr: 850,
+      waterPrev: 41,
+      waterCurr: 45,
+    },
+    {
+      propertyId: property.id,
+      roomId: r102.id,
+      period: "2026-09",
+      electricPrev: 850,
+      electricCurr: 940,
+      waterPrev: 45,
+      waterCurr: 49,
+    },
+    {
+      propertyId: property.id,
+      roomId: r102.id,
+      period: period,
+      electricPrev: 940,
+      electricCurr: 1030,
+      waterPrev: 49,
+      waterCurr: 53,
+    },
+  ]);
 
-  // Phòng 201: đã ghi tháng 10
-  await db.insert(meterReadings).values({
-    propertyId: property.id,
-    roomId: r201.id,
-    period: period,
-    electricPrev: 1520,
-    electricCurr: 1640,
-    waterPrev: 110,
-    waterCurr: 115,
-  });
+  // Phòng 201
+  await db.insert(meterReadings).values([
+    {
+      propertyId: property.id,
+      roomId: r201.id,
+      period: "2026-07",
+      electricPrev: 1280,
+      electricCurr: 1400,
+      waterPrev: 100,
+      waterCurr: 105,
+    },
+    {
+      propertyId: property.id,
+      roomId: r201.id,
+      period: "2026-08",
+      electricPrev: 1400,
+      electricCurr: 1520,
+      waterPrev: 105,
+      waterCurr: 110,
+    },
+    {
+      propertyId: property.id,
+      roomId: r201.id,
+      period: "2026-09",
+      electricPrev: 1520,
+      electricCurr: 1640,
+      waterPrev: 110,
+      waterCurr: 115,
+    },
+    {
+      propertyId: property.id,
+      roomId: r201.id,
+      period: period,
+      electricPrev: 1640,
+      electricCurr: 1760,
+      waterPrev: 115,
+      waterCurr: 120,
+    },
+  ]);
 
-  // Phòng 202: kỳ trước có ghi, nhưng THÁNG NÀY CHƯA GHI (để test CTA nhập số)
-  await db.insert(meterReadings).values({
-    propertyId: property.id,
-    roomId: r202.id,
-    period: "2026-09",
-    electricPrev: 410,
-    electricCurr: 470,
-    waterPrev: 28,
-    waterCurr: 31,
-  });
+  // Phòng 202: 3 tháng trước có ghi, tháng này chưa ghi (để test CTA nhập số)
+  await db.insert(meterReadings).values([
+    {
+      propertyId: property.id,
+      roomId: r202.id,
+      period: "2026-07",
+      electricPrev: 290,
+      electricCurr: 350,
+      waterPrev: 22,
+      waterCurr: 25,
+    },
+    {
+      propertyId: property.id,
+      roomId: r202.id,
+      period: "2026-08",
+      electricPrev: 350,
+      electricCurr: 410,
+      waterPrev: 25,
+      waterCurr: 28,
+    },
+    {
+      propertyId: property.id,
+      roomId: r202.id,
+      period: "2026-09",
+      electricPrev: 410,
+      electricCurr: 470,
+      waterPrev: 28,
+      waterCurr: 31,
+    },
+  ]);
 
-  // 8. Hóa đơn (Invoices) & Thanh toán (Payments)
+  // 8. Hóa đơn (Invoices) & Thanh toán (Payments) lịch sử cho các phòng
 
   // --- Hóa đơn Phòng 101 ---
+  // Tháng 7: Đã thu đủ (tiền mặt)
+  const [inv101Jul] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r101.id,
+      contractId: c101.id,
+      period: "2026-07",
+      dueDate: "2026-08-05",
+      roomFee: 3000000,
+      electricUsage: 50,
+      electricUnitPrice: 3500,
+      electricAmount: 175000,
+      waterUsage: 3,
+      waterUnitPrice: 25000,
+      waterAmount: 75000,
+      otherFee: 0,
+      total: 3250000,
+      paidAmount: 3250000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv101Jul.id,
+    amount: 3250000,
+    method: "cash",
+    paidAt: new Date("2026-08-02"),
+  });
+
   // Tháng 8: Đã thu đủ (tiền mặt)
   const [inv101Aug] = await db
     .insert(invoices)
@@ -498,6 +617,97 @@ async function main() {
   });
 
   // --- Hóa đơn Phòng 102 ---
+  // Tháng 7: Đã thu đủ (chuyển khoản)
+  const [inv102Jul] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r102.id,
+      contractId: c102.id,
+      period: "2026-07",
+      dueDate: "2026-08-05",
+      roomFee: 3500000,
+      electricUsage: 80,
+      electricUnitPrice: 3500,
+      electricAmount: 280000,
+      waterUsage: 4,
+      waterUnitPrice: 25000,
+      waterAmount: 100000,
+      otherFee: 0,
+      total: 3880000,
+      paidAmount: 3880000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv102Jul.id,
+    amount: 3880000,
+    method: "transfer",
+    paidAt: new Date("2026-08-04"),
+  });
+
+  // Tháng 8: Đã thu đủ (chuyển khoản)
+  const [inv102Aug] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r102.id,
+      contractId: c102.id,
+      period: "2026-08",
+      dueDate: "2026-09-05",
+      roomFee: 3500000,
+      electricUsage: 90,
+      electricUnitPrice: 3500,
+      electricAmount: 315000,
+      waterUsage: 4,
+      waterUnitPrice: 25000,
+      waterAmount: 100000,
+      otherFee: 10000,
+      otherFeeNote: "Vệ sinh hành lang",
+      total: 3925000,
+      paidAmount: 3925000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv102Aug.id,
+    amount: 3925000,
+    method: "transfer",
+    paidAt: new Date("2026-09-04"),
+  });
+
+  // Tháng 9: Đã thu đủ (chuyển khoản)
+  const [inv102Sep] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r102.id,
+      contractId: c102.id,
+      period: "2026-09",
+      dueDate: "2026-10-05",
+      roomFee: 3500000,
+      electricUsage: 90,
+      electricUnitPrice: 3500,
+      electricAmount: 315000,
+      waterUsage: 4,
+      waterUnitPrice: 25000,
+      waterAmount: 100000,
+      otherFee: 0,
+      total: 3915000,
+      paidAmount: 3915000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv102Sep.id,
+    amount: 3915000,
+    method: "transfer",
+    paidAt: new Date("2026-10-03"),
+  });
+
   // Tháng 10: ĐÃ THU ĐỦ (chuyển khoản)
   const [inv102Oct] = await db
     .insert(invoices)
@@ -530,6 +740,96 @@ async function main() {
   });
 
   // --- Hóa đơn Phòng 201 ---
+  // Tháng 7: Đã thu đủ (chuyển khoản)
+  const [inv201Jul] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r201.id,
+      contractId: c201.id,
+      period: "2026-07",
+      dueDate: "2026-08-05",
+      roomFee: 4000000,
+      electricUsage: 120,
+      electricUnitPrice: 3500,
+      electricAmount: 420000,
+      waterUsage: 5,
+      waterUnitPrice: 25000,
+      waterAmount: 125000,
+      otherFee: 0,
+      total: 4545000,
+      paidAmount: 4545000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv201Jul.id,
+    amount: 4545000,
+    method: "transfer",
+    paidAt: new Date("2026-08-05"),
+  });
+
+  // Tháng 8: Đã thu đủ (chuyển khoản)
+  const [inv201Aug] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r201.id,
+      contractId: c201.id,
+      period: "2026-08",
+      dueDate: "2026-09-05",
+      roomFee: 4000000,
+      electricUsage: 120,
+      electricUnitPrice: 3500,
+      electricAmount: 420000,
+      waterUsage: 5,
+      waterUnitPrice: 25000,
+      waterAmount: 125000,
+      otherFee: 0,
+      total: 4545000,
+      paidAmount: 4545000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv201Aug.id,
+    amount: 4545000,
+    method: "transfer",
+    paidAt: new Date("2026-09-05"),
+  });
+
+  // Tháng 9: Đã thu đủ (chuyển khoản)
+  const [inv201Sep] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r201.id,
+      contractId: c201.id,
+      period: "2026-09",
+      dueDate: "2026-10-05",
+      roomFee: 4000000,
+      electricUsage: 120,
+      electricUnitPrice: 3500,
+      electricAmount: 420000,
+      waterUsage: 5,
+      waterUnitPrice: 25000,
+      waterAmount: 125000,
+      otherFee: 0,
+      total: 4545000,
+      paidAmount: 4545000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv201Sep.id,
+    amount: 4545000,
+    method: "transfer",
+    paidAt: new Date("2026-10-04"),
+  });
+
   // Tháng 10: QUÁ HẠN (đặt dueDate trước ngày hôm nay để test bộ lọc Quá hạn)
   await db.insert(invoices).values({
     propertyId: property.id,
@@ -548,6 +848,97 @@ async function main() {
     total: 4545000,
     paidAmount: 0,
     status: "unpaid",
+  });
+
+  // --- Hóa đơn Phòng 202 ---
+  // Tháng 7: Đã thu đủ (tiền mặt)
+  const [inv202Jul] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r202.id,
+      contractId: c202.id,
+      period: "2026-07",
+      dueDate: "2026-08-05",
+      roomFee: 2800000,
+      electricUsage: 60,
+      electricUnitPrice: 3500,
+      electricAmount: 210000,
+      waterUsage: 3,
+      waterUnitPrice: 25000,
+      waterAmount: 75000,
+      otherFee: 0,
+      total: 3085000,
+      paidAmount: 3085000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv202Jul.id,
+    amount: 3085000,
+    method: "cash",
+    paidAt: new Date("2026-08-03"),
+  });
+
+  // Tháng 8: Đã thu đủ (tiền mặt)
+  const [inv202Aug] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r202.id,
+      contractId: c202.id,
+      period: "2026-08",
+      dueDate: "2026-09-05",
+      roomFee: 2800000,
+      electricUsage: 60,
+      electricUnitPrice: 3500,
+      electricAmount: 210000,
+      waterUsage: 3,
+      waterUnitPrice: 25000,
+      waterAmount: 75000,
+      otherFee: 0,
+      total: 3085000,
+      paidAmount: 3085000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv202Aug.id,
+    amount: 3085000,
+    method: "cash",
+    paidAt: new Date("2026-09-02"),
+  });
+
+  // Tháng 9: Đã thu đủ (chuyển khoản)
+  const [inv202Sep] = await db
+    .insert(invoices)
+    .values({
+      propertyId: property.id,
+      roomId: r202.id,
+      contractId: c202.id,
+      period: "2026-09",
+      dueDate: "2026-10-05",
+      roomFee: 2800000,
+      electricUsage: 60,
+      electricUnitPrice: 3500,
+      electricAmount: 210000,
+      waterUsage: 3,
+      waterUnitPrice: 25000,
+      waterAmount: 75000,
+      otherFee: 0,
+      total: 3085000,
+      paidAmount: 3085000,
+      status: "paid",
+    })
+    .returning();
+  await db.insert(payments).values({
+    propertyId: property.id,
+    invoiceId: inv202Sep.id,
+    amount: 3085000,
+    method: "transfer",
+    paidAt: new Date("2026-10-02"),
   });
 
   // 9. Yêu cầu sửa chữa / Báo hỏng (Maintenance Requests)
@@ -576,13 +967,64 @@ async function main() {
     },
   ]);
 
+  // 10. Nhật ký an ninh mẫu (Audit Logs)
+  await db.insert(auditLogs).values([
+    {
+      propertyId: property.id,
+      userId: owner.id,
+      action: "login",
+      resourceType: "auth",
+      ipAddress: "127.0.0.1",
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      createdAt: new Date("2026-10-05T08:00:00Z"),
+    },
+    {
+      propertyId: property.id,
+      userId: owner.id,
+      action: "record_payment",
+      resourceType: "payment",
+      details: JSON.stringify({ room: "102", amount: 3925000, method: "transfer" }),
+      ipAddress: "127.0.0.1",
+      createdAt: new Date("2026-10-04T10:15:00Z"),
+    },
+    {
+      propertyId: property.id,
+      userId: owner.id,
+      action: "create_invoice",
+      resourceType: "invoice",
+      details: JSON.stringify({ room: "101", period: "2026-10", total: 3397500 }),
+      ipAddress: "127.0.0.1",
+      createdAt: new Date("2026-10-01T09:30:00Z"),
+    },
+    {
+      propertyId: property.id,
+      userId: owner.id,
+      action: "grant_tenant_account",
+      resourceType: "tenant",
+      details: JSON.stringify({ room: "101", tenant: "Nguyễn Văn A" }),
+      ipAddress: "127.0.0.1",
+      createdAt: new Date("2026-09-15T14:00:00Z"),
+    },
+    {
+      propertyId: property.id,
+      userId: owner.id,
+      action: "update_settings",
+      resourceType: "property",
+      details: JSON.stringify({ electricPrice: 3500, waterPrice: 25000, dueDay: 5 }),
+      ipAddress: "127.0.0.1",
+      createdAt: new Date("2026-09-01T08:30:00Z"),
+    },
+  ]);
+
   console.log("=== Seed dữ liệu thành công! ===");
   console.log(`- Tài khoản: ${env.SEED_OWNER_EMAIL} / ${env.SEED_OWNER_PASSWORD}`);
   console.log(`- Nhà trọ: ${property.name} (${property.address})`);
   console.log(
     "- 6 Phòng: 101 (chưa thu), 102 (đã thu), 201 (quá hạn), 202 (chưa ghi số), 301 (trống), 302 (bảo trì)",
   );
-  console.log("- 6 Người thuê, 5 hợp đồng, 4 hóa đơn, 3 thanh toán, 3 yêu cầu bảo trì.");
+  console.log(
+    "- 6 Người thuê, 5 hợp đồng, 15 hóa đơn (kèm 12 hóa đơn lịch sử 3 tháng trước), 12 thanh toán, 3 yêu cầu bảo trì.",
+  );
   process.exit(0);
 }
 

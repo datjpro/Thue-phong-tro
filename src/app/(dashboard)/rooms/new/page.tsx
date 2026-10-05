@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
@@ -7,7 +8,10 @@ import { RoomForm } from "@/features/rooms/components/room-form";
 import { requireContext } from "@/lib/session";
 
 export default async function NewRoomPage() {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
+  if (ctx.role === "tenant") redirect("/");
+
+  const { propertyId } = ctx;
   const t = await getTranslations("rooms");
 
   return (

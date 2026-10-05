@@ -1,5 +1,6 @@
 import { FileText, Plus } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
@@ -13,7 +14,10 @@ import { formatMoney } from "@/lib/money";
 import { requireContext } from "@/lib/session";
 
 export default async function ContractsPage() {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
+  if (ctx.role === "tenant") redirect("/");
+
+  const { propertyId } = ctx;
   const t = await getTranslations("contracts");
   const rows = await listContracts(propertyId);
   const today = todayVn();

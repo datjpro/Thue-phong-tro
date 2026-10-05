@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { contracts, contractTenants, meterReadings, rooms, tenants } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
+import { logAuditEvent } from "@/lib/audit";
 import { prevPeriod } from "@/lib/dates";
-import { assertMember, requireContext } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { assertManager, requireContext } from "@/lib/session";
 import {
   type ContractInput,
   contractSchema,
@@ -19,7 +21,10 @@ export async function createContract(
   input: ContractInput,
 ): Promise<ActionResult<{ id: string }>> {
   const ctx = await requireContext();
-  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  const rateCheck = checkRateLimit(`contract:${ctx.userId}`, { limit: 20, windowMs: 60000 });
+  if (!rateCheck.success) return fail("rateLimitExceeded");
 
   const parsed = contractSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
@@ -98,6 +103,15 @@ export async function createContract(
     return c.id;
   });
 
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "create_contract",
+    resourceType: "contract",
+    resourceId: id,
+    details: { roomId: v.roomId, rentPrice: v.rentPrice, startDate: v.startDate },
+  });
+
   revalidatePath("/", "layout");
   return success({ id });
 }
@@ -107,7 +121,10 @@ export async function endContract(
   input: EndContractInput,
 ): Promise<ActionResult> {
   const ctx = await requireContext();
-  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  const rateCheck = checkRateLimit(`contract:${ctx.userId}`, { limit: 20, windowMs: 60000 });
+  if (!rateCheck.success) return fail("rateLimitExceeded");
 
   const parsed = endContractSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
@@ -133,6 +150,15 @@ export async function endContract(
       .set({ status: "ended", endDate: parsed.data.endDate })
       .where(eq(contracts.id, c.id));
     await tx.update(rooms).set({ status: "vacant" }).where(eq(rooms.id, c.roomId));
+  });
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "end_contract",
+    resourceType: "contract",
+    resourceId: c.id,
+    details: { roomId: c.roomId, endDate: parsed.data.endDate },
   });
 
   revalidatePath("/", "layout");

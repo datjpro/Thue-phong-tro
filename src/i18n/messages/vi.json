@@ -2,6 +2,8 @@
   "common": { "month": "Tháng {value}", "status": "Tình trạng", "undo": "Hoàn tác" },
   "nav": {
     "brand": "Thuê phòng trọ",
+    "tenantPortal": "Cổng người thuê",
+    "myRoom": "Phòng của tôi",
     "overview": "Tổng quan",
     "rooms": "Phòng",
     "invoices": "Hóa đơn",
@@ -47,6 +49,7 @@
     "invoiceExists": "Kỳ này đã có hóa đơn cho phòng này.",
     "readingLower": "Chỉ số mới nhỏ hơn chỉ số cũ. Kiểm tra lại hoặc chọn 'Thay đồng hồ'.",
     "overpay": "Số tiền lớn hơn phần còn phải thu. Giảm số tiền xuống.",
+    "rateLimitExceeded": "Bạn đang thao tác quá nhanh. Vui lòng đợi giây lát rồi thử lại.",
     "pageTitle": "Không tải được trang này",
     "pageDesc": "Có lỗi khi lấy dữ liệu. Thử tải lại; nếu vẫn lỗi, kiểm tra kết nối cơ sở dữ liệu.",
     "retry": "Tải lại"

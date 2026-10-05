@@ -7,6 +7,7 @@ export async function listMaintenance(propertyId: string) {
   return db
     .select({
       id: maintenanceRequests.id,
+      roomId: maintenanceRequests.roomId,
       title: maintenanceRequests.title,
       description: maintenanceRequests.description,
       status: maintenanceRequests.status,

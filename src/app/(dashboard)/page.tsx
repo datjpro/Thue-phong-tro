@@ -16,7 +16,8 @@ import { PageTransition } from "@/components/shared/page-transition";
 import { StatsCard } from "@/components/shared/stats-card";
 import { buttonVariants } from "@/components/ui/button";
 import { RoomList } from "@/features/rooms/components/room-list";
-import { listRooms } from "@/features/rooms/queries";
+import { getRoomDetail, listRooms } from "@/features/rooms/queries";
+import { TenantHomeView } from "@/features/tenants/components/tenant-home-view";
 import { currentPeriod, formatPeriodShort, nextPeriod, prevPeriod, todayVn } from "@/lib/dates";
 import { invoiceDisplayStatus } from "@/lib/invoice-status";
 import { formatMoney } from "@/lib/money";
@@ -27,12 +28,32 @@ interface PageProps {
 }
 
 export default async function OverviewPage({ searchParams }: PageProps) {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
   const t = await getTranslations();
   const params = await searchParams;
 
   const nowPeriod = currentPeriod();
   const period = params.period && /^\d{4}-\d{2}$/.test(params.period) ? params.period : nowPeriod;
+
+  // Cổng người thuê: hiển thị phòng của người thuê
+  if (ctx.role === "tenant") {
+    if (ctx.roomId) {
+      const detail = await getRoomDetail(ctx.propertyId, ctx.roomId, period);
+      if (detail) {
+        return <TenantHomeView propertyId={ctx.propertyId} detail={detail} />;
+      }
+    }
+    return (
+      <PageTransition className="mx-auto max-w-md space-y-6">
+        <EmptyState
+          title="Chưa có phòng liên kết"
+          description="Tài khoản của bạn chưa được liên kết với phòng trọ nào đang hoạt động. Vui lòng liên hệ chủ trọ để được kích hoạt."
+        />
+      </PageTransition>
+    );
+  }
+
+  const { propertyId } = ctx;
   const filter = params.filter;
   const today = todayVn();
 

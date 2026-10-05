@@ -143,3 +143,5 @@ export async function getRoomDetail(propertyId: string, roomId: string, period: 
     monthInvoice: monthInvoice ?? null,
   };
 }
+
+export type RoomDetail = NonNullable<Awaited<ReturnType<typeof getRoomDetail>>>;

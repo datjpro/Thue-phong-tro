@@ -12,27 +12,43 @@ import { currentPeriod, formatDate } from "@/lib/dates";
 import { requireContext } from "@/lib/session";
 
 export default async function MaintenancePage() {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
   const t = await getTranslations("maintenance");
-  const [rows, rooms] = await Promise.all([
-    listMaintenance(propertyId),
-    listRooms(propertyId, currentPeriod()),
+  const isTenant = ctx.role === "tenant";
+
+  const [allRows, allRooms] = await Promise.all([
+    listMaintenance(ctx.propertyId),
+    listRooms(ctx.propertyId, currentPeriod()),
   ]);
+
+  const rows = isTenant ? allRows.filter((r) => r.roomId === ctx.roomId) : allRows;
+  const availableRooms = isTenant
+    ? ctx.roomId && ctx.roomName
+      ? [{ id: ctx.roomId, name: ctx.roomName }]
+      : []
+    : allRooms.map((r) => ({ id: r.id, name: r.name }));
 
   return (
     <PageTransition className="space-y-6">
       <PageHeader
-        title={t("title")}
-        description={`${rows.length} yêu cầu sửa chữa đã ghi nhận`}
+        title={isTenant ? "Báo hỏng & Sửa chữa" : t("title")}
+        description={
+          isTenant
+            ? `${rows.length} yêu cầu sửa chữa của phòng bạn`
+            : `${rows.length} yêu cầu sửa chữa đã ghi nhận`
+        }
         action={
-          <MaintenanceForm
-            propertyId={propertyId}
-            rooms={rooms.map((r) => ({ id: r.id, name: r.name }))}
-          />
+          availableRooms.length > 0 ? (
+            <MaintenanceForm propertyId={ctx.propertyId} rooms={availableRooms} />
+          ) : null
         }
       />
       {rows.length === 0 ? (
-        <EmptyState title={t("emptyTitle")} description={t("emptyDesc")} icon={Wrench} />
+        <EmptyState
+          title={t("emptyTitle")}
+          description={isTenant ? "Phòng bạn chưa có yêu cầu sửa chữa nào." : t("emptyDesc")}
+          icon={Wrench}
+        />
       ) : (
         <div className="flex flex-col gap-3">
           {rows.map((r) => (
@@ -55,9 +71,15 @@ export default async function MaintenancePage() {
                 ) : null}
               </div>
 
-              <div className="flex items-center justify-between border-t border-border/40 pt-3 sm:border-0 sm:pt-0 sm:justify-end gap-3 shrink-0">
-                <MaintenanceStatusSelect propertyId={propertyId} id={r.id} status={r.status} />
-              </div>
+              {!isTenant ? (
+                <div className="flex items-center justify-between border-t border-border/40 pt-3 sm:border-0 sm:pt-0 sm:justify-end gap-3 shrink-0">
+                  <MaintenanceStatusSelect
+                    propertyId={ctx.propertyId}
+                    id={r.id}
+                    status={r.status}
+                  />
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

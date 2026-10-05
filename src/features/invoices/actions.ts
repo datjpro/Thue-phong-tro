@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { contracts, invoices, meterReadings, payments, properties, rooms } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
+import { logAuditEvent } from "@/lib/audit";
 import { dueDateFor } from "@/lib/dates";
-import { assertMember, requireContext } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { assertManager, requireContext } from "@/lib/session";
 import { calculateInvoice, paymentStatus } from "./calculate";
 import { type PaymentInput, type ReadingInput, paymentSchema, readingSchema } from "./schemas";
 
@@ -15,7 +17,10 @@ export async function saveReadingAndCreateInvoice(
   input: ReadingInput,
 ): Promise<ActionResult<{ invoiceId: string }>> {
   const ctx = await requireContext();
-  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  const rateCheck = checkRateLimit(`invoice:${ctx.userId}`, { limit: 30, windowMs: 60000 });
+  if (!rateCheck.success) return fail("rateLimitExceeded");
 
   const parsed = readingSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
@@ -140,6 +145,15 @@ export async function saveReadingAndCreateInvoice(
     return inv.id;
   });
 
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "create_invoice",
+    resourceType: "invoice",
+    resourceId: invoiceId,
+    details: { roomId: v.roomId, period: v.period, total: calc.total },
+  });
+
   revalidatePath("/", "layout");
   return success({ invoiceId });
 }
@@ -161,7 +175,10 @@ export async function recordPayment(
   input: PaymentInput,
 ): Promise<ActionResult<{ paymentId: string }>> {
   const ctx = await requireContext();
-  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  const rateCheck = checkRateLimit(`payment:${ctx.userId}`, { limit: 30, windowMs: 60000 });
+  if (!rateCheck.success) return fail("rateLimitExceeded");
 
   const parsed = paymentSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
@@ -190,6 +207,15 @@ export async function recordPayment(
     return p.id;
   });
 
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "record_payment",
+    resourceType: "payment",
+    resourceId: paymentId,
+    details: { invoiceId: v.invoiceId, amount: v.amount, method: v.method },
+  });
+
   revalidatePath("/", "layout");
   return success({ paymentId });
 }
@@ -197,7 +223,7 @@ export async function recordPayment(
 /** Hoàn tác trong vài giây sau khi ghi nhận (UX-UI 6.2). Xóa mềm để còn dấu vết. */
 export async function undoPayment(propertyId: string, paymentId: string): Promise<ActionResult> {
   const ctx = await requireContext();
-  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
 
   const [p] = await db
     .select()
@@ -215,6 +241,15 @@ export async function undoPayment(propertyId: string, paymentId: string): Promis
   await db.transaction(async (tx) => {
     await tx.update(payments).set({ deletedAt: new Date() }).where(eq(payments.id, paymentId));
     await recalcInvoice(tx, p.invoiceId);
+  });
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "undo_payment",
+    resourceType: "payment",
+    resourceId: paymentId,
+    details: { invoiceId: p.invoiceId, amount: p.amount },
   });
 
   revalidatePath("/", "layout");

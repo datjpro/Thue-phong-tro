@@ -14,10 +14,16 @@ import { requireContext } from "@/lib/session";
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
   const t = await getTranslations();
-  const detail = await getInvoiceDetail(propertyId, id);
+  const detail = await getInvoiceDetail(ctx.propertyId, id);
   if (!detail) notFound();
+
+  // Kiểm tra quyền truy cập: nếu là người thuê thì chỉ được xem hóa đơn phòng mình
+  if (ctx.role === "tenant" && detail.invoice.roomId !== ctx.roomId) {
+    notFound();
+  }
+
   const { invoice, roomName, tenantName, payments } = detail;
   const remaining = invoice.total - invoice.paidAmount;
 
@@ -50,7 +56,23 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
           {remaining > 0 ? (
             <div className="no-print max-w-md pt-2">
-              <PaymentSheet propertyId={propertyId} invoiceId={invoice.id} remaining={remaining} />
+              {ctx.role !== "tenant" ? (
+                <PaymentSheet
+                  propertyId={ctx.propertyId}
+                  invoiceId={invoice.id}
+                  remaining={remaining}
+                />
+              ) : (
+                <div className="rounded-xl border border-suong bg-mat p-4 text-center">
+                  <p className="text-sm font-semibold text-muc">Thông tin thanh toán</p>
+                  <p className="mt-1 text-xs text-muc-phu">
+                    Số tiền còn lại cần thanh toán:{" "}
+                    <strong className="text-muc font-bold">{formatMoney(remaining)}</strong>. Vui
+                    lòng liên hệ chủ trọ để nộp tiền mặt hoặc chuyển khoản theo hướng dẫn của chủ
+                    nhà.
+                  </p>
+                </div>
+              )}
             </div>
           ) : null}
         </div>

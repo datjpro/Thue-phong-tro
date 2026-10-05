@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
@@ -15,8 +16,11 @@ export default async function NewContractPage({
 }: {
   searchParams: Promise<{ roomId?: string }>;
 }) {
+  const ctx = await requireContext();
+  if (ctx.role === "tenant") redirect("/");
+
   const { roomId } = await searchParams;
-  const { propertyId } = await requireContext();
+  const { propertyId } = ctx;
   const t = await getTranslations("contracts");
   const options = await getContractFormOptions(propertyId);
 

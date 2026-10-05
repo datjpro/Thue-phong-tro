@@ -12,7 +12,10 @@ import { currentPeriod, todayVn } from "@/lib/dates";
 import { requireContext } from "@/lib/session";
 
 export default async function RoomsPage() {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
+  if (ctx.role === "tenant") redirect("/");
+
+  const { propertyId } = ctx;
   const t = await getTranslations("rooms");
   const rows = await listRooms(propertyId, currentPeriod());
 

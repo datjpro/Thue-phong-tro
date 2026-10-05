@@ -16,10 +16,11 @@ interface InvoicesPageProps {
 }
 
 export default async function InvoicesPage({ searchParams }: InvoicesPageProps) {
-  const { propertyId } = await requireContext();
+  const ctx = await requireContext();
   const t = await getTranslations();
   const { status: statusFilter } = await searchParams;
-  const rows = await listInvoices(propertyId);
+  const allRows = await listInvoices(ctx.propertyId);
+  const rows = ctx.role === "tenant" ? allRows.filter((r) => r.roomId === ctx.roomId) : allRows;
   const today = todayVn();
 
   const filteredRows = rows.filter((r) => {
@@ -41,8 +42,12 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
   return (
     <PageTransition className="space-y-6">
       <PageHeader
-        title={t("invoices.listTitle")}
-        description={`${rows.length} hóa đơn đã phát hành`}
+        title={ctx.role === "tenant" ? "Hóa đơn phòng của bạn" : t("invoices.listTitle")}
+        description={
+          ctx.role === "tenant"
+            ? `${rows.length} hóa đơn đã phát hành cho ${ctx.roomName ? `phòng ${ctx.roomName}` : "phòng bạn"}`
+            : `${rows.length} hóa đơn đã phát hành`
+        }
       />
 
       {/* Filter tabs */}
