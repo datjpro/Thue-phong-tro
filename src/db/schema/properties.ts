@@ -19,6 +19,14 @@ export const properties = pgTable("properties", {
   bankName: text("bank_name"),
   bankAccount: text("bank_account"),
   bankOwner: text("bank_owner"),
+  // Thông tin chủ trọ (Đại diện Bên A trong hợp đồng)
+  ownerName: text("owner_name"),
+  ownerBirthDate: text("owner_birth_date"),
+  ownerIdNumber: text("owner_id_number"),
+  ownerIdDate: text("owner_id_date"),
+  ownerIdPlace: text("owner_id_place"),
+  ownerHometown: text("owner_hometown"),
+  ownerPhone: text("owner_phone"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

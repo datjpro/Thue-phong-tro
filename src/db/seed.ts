@@ -43,6 +43,13 @@ async function main() {
         electricPrice: 3500,
         waterPrice: 25000,
         dueDay: 5,
+        ownerName: "Nguyễn Văn Hùng",
+        ownerBirthDate: "1980-05-15",
+        ownerIdNumber: "001080009999",
+        ownerIdDate: "2021-08-20",
+        ownerIdPlace: "Cục CS QLHC về TTXH",
+        ownerHometown: "Phường Dịch Vọng Hậu, Quận Cầu Giấy, Hà Nội",
+        ownerPhone: "0987654321",
       })
       .returning();
   }
@@ -963,7 +970,7 @@ async function main() {
       title: "Thay bóng đèn ban công",
       description: "Đèn ban công bị cháy sau trận mưa lớn.",
       status: "done",
-      resolvedAt: new Date("2026-10-02"),
+      completedAt: new Date("2026-10-02"),
     },
   ]);
 

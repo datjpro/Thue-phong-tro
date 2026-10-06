@@ -29,6 +29,13 @@
       "when": 1791255000000,
       "tag": "0003_upgrade_features",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791260000000,
+      "tag": "0004_owner_profile",
+      "breakpoints": true
     }
   ]
 }

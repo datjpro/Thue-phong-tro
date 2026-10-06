@@ -29,6 +29,15 @@ export type ContractAgreementData = {
     hometown: string | null;
     workplace: string | null;
   } | null;
+  owner?: {
+    name: string | null;
+    birthDate: string | null;
+    idNumber: string | null;
+    idDate: string | null;
+    idPlace: string | null;
+    hometown: string | null;
+    phone: string | null;
+  } | null;
 };
 
 function parseDateParts(dateStr?: string | null) {
@@ -48,6 +57,8 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
   const start = parseDateParts(data.startDate);
   const end = parseDateParts(data.endDate);
   const tenantBirth = parseDateParts(data.primaryTenant?.birthDate);
+  const ownerBirth = parseDateParts(data.owner?.birthDate);
+  const ownerIdDate = parseDateParts(data.owner?.idDate);
 
   return (
     <div className="space-y-4">
@@ -64,7 +75,7 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
         </Button>
       </div>
 
-      <article className="relative mx-auto w-full max-w-3xl rounded-[4px] border border-border bg-card p-6 sm:p-10 text-card-foreground shadow-sm print:border-none print:p-0 print:shadow-none print:text-black print:bg-white text-sm leading-relaxed">
+      <article className="relative mx-auto w-full max-w-3xl rounded-[4px] border border-border bg-card p-6 sm:p-10 text-card-foreground shadow-sm print:border-none print:p-0 print:shadow-none print:text-black print:bg-white text-sm leading-relaxed font-serif">
         {/* Quốc hiệu & Tiêu ngữ */}
         <div className="text-center space-y-1 pb-4">
           <p className="font-bold text-sm sm:text-base uppercase tracking-wider text-foreground print:text-black">
@@ -88,14 +99,9 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
         </div>
 
         {/* Hôm nay ngày ... tại địa chỉ ... */}
-        <div className="space-y-2 mb-4 text-xs sm:text-sm">
-          <p>
-            Hôm nay ngày <strong>{start.day}</strong> tháng <strong>{start.month}</strong> năm{" "}
-            <strong>{start.year}</strong> ; tại địa chỉ:{" "}
-            <strong>
-              {data.propertyAddress || data.propertyName || "…………………………………………………………………………………………………"}
-            </strong>
-          </p>
+        <div className="space-y-1 mb-4 text-xs sm:text-sm">
+          <p>Hôm nay ngày ……. tháng ……. năm ………….. ; tại địa chỉ:………………………………………………………………………………</p>
+          <p>………………………………………………………………………………………</p>
         </div>
 
         {/* Chúng tôi gồm */}
@@ -106,14 +112,34 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
           <div className="space-y-1 pl-2">
             <p className="font-bold">1. Đại diện bên cho thuê phòng trọ (Bên A):</p>
             <p>
-              Ông/bà: <strong>{data.propertyName}</strong> Sinh ngày: ………… / ………… / ………………
+              Ông/bà:{" "}
+              <strong>
+                {data.owner?.name || data.propertyName || "………………………………………………………………………………………………"}
+              </strong>{" "}
+              Sinh ngày:{" "}
+              {data.owner?.birthDate
+                ? `${ownerBirth.day} / ${ownerBirth.month} / ${ownerBirth.year}`
+                : "…………………………………………"}
             </p>
             <p>
               Nơi đăng ký HK:{" "}
-              {data.propertyAddress || "……………………………………………………………………………………………………………………………………………………"}
+              <strong>
+                {data.owner?.hometown ||
+                  data.propertyAddress ||
+                  "……………………………………………………………………………………………………………………………………………………"}
+              </strong>
             </p>
-            <p>CCCD số: ………………………………. cấp ngày ……./ ……. / …………..tại ………………………………………………………………</p>
-            <p>Số điện thoại:………………………………………………………………………………………………………………………………………….</p>
+            <p>
+              CCCD số: <strong>{data.owner?.idNumber || "………………………………."}</strong> cấp ngày{" "}
+              {data.owner?.idDate
+                ? `${ownerIdDate.day} / ${ownerIdDate.month} / ${ownerIdDate.year}`
+                : "……./ ……. / ………….."}{" "}
+              tại <strong>{data.owner?.idPlace || "…………………………………………"}</strong>
+            </p>
+            <p>
+              Số điện thoại:{" "}
+              <strong>{data.owner?.phone || "……………………………………………………………………………………………………………………"}</strong>
+            </p>
           </div>
 
           {/* 2. Bên B */}
@@ -267,7 +293,7 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
                 (Ký, ghi rõ họ tên)
               </p>
             </div>
-            <p className="font-semibold">{data.propertyName}</p>
+            <p className="font-semibold">{data.owner?.name || data.propertyName}</p>
           </div>
 
           <div className="space-y-16">

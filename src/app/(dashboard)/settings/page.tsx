@@ -44,9 +44,17 @@ export default async function SettingsPage() {
               propertyId={ctx.propertyId}
               defaults={{
                 name: property.name,
+                address: property.address,
                 electricPrice: property.electricPrice,
                 waterPrice: property.waterPrice,
                 dueDay: property.dueDay,
+                ownerName: property.ownerName,
+                ownerBirthDate: property.ownerBirthDate,
+                ownerIdNumber: property.ownerIdNumber,
+                ownerIdDate: property.ownerIdDate,
+                ownerIdPlace: property.ownerIdPlace,
+                ownerHometown: property.ownerHometown,
+                ownerPhone: property.ownerPhone,
               }}
             />
           </div>

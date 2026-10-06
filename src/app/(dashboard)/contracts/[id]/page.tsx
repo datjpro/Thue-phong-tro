@@ -62,6 +62,17 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 workplace: primary.workplace,
               }
             : null,
+          owner: detail.property
+            ? {
+                name: detail.property.ownerName,
+                birthDate: detail.property.ownerBirthDate,
+                idNumber: detail.property.ownerIdNumber,
+                idDate: detail.property.ownerIdDate,
+                idPlace: detail.property.ownerIdPlace,
+                hometown: detail.property.ownerHometown,
+                phone: detail.property.ownerPhone,
+              }
+            : null,
         }}
       />
     </PageTransition>
