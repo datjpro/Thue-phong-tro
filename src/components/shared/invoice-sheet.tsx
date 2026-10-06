@@ -100,9 +100,9 @@ export function InvoiceSheet({ data, today }: { data: InvoiceSheetData; today: s
       {/* Header phiếu: Mã/kỳ bên trái, Con dấu góc trên bên phải */}
       <div className="flex items-start justify-between pb-3">
         <div>
-          <span className="text-xs font-medium text-muc-phu">Phiếu thu tháng</span>
+          <span className="text-xs font-medium text-muc-phu">Phiếu thu kỳ</span>
           <p className="text-base font-semibold text-muc">
-            {data.period.slice(5, 7)}/{data.period.slice(0, 4)}
+            Tháng {data.period.slice(5, 7)}/{data.period.slice(0, 4)}
           </p>
         </div>
         <div
