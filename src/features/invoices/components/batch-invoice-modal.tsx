@@ -181,7 +181,7 @@ export function BatchInvoiceModal({
               className="h-7 text-xs gap-1"
             >
               <Sparkles size={12} className="text-amber-500" />
-              Điền mẫu nhanh
+              Điền số liệu nhanh
             </Button>
           </div>
         </div>

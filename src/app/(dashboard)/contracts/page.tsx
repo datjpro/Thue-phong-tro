@@ -114,7 +114,7 @@ export default async function ContractsPage() {
                 <Link
                   href={`/contracts/${r.id}`}
                   className={buttonVariants({ variant: "outline", size: "sm" })}
-                  title="Xem và in mẫu hợp đồng điện tử"
+                  title="Xem và in văn bản hợp đồng điện tử"
                 >
                   <Eye size={14} className="mr-1" />
                   <span>Hợp đồng</span>

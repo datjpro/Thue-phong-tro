@@ -158,7 +158,7 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
               href={`/contracts/${contract.id}`}
               className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
             >
-              Xem mẫu in hợp đồng
+              Xem & In hợp đồng
             </Link>
           </div>
           <div className="border-t border-border/40 pt-2 space-y-1 text-xs sm:text-sm">

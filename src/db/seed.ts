@@ -52,6 +52,22 @@ async function main() {
         ownerPhone: "0987654321",
       })
       .returning();
+  } else {
+    await db
+      .update(properties)
+      .set({
+        name: property.name === "Nhà trọ mẫu" ? "Nhà trọ Xanh Cầu Giấy" : property.name,
+        address: property.address === "Hà Nội" ? "Số 12 ngõ 45 Cầu Giấy, Hà Nội" : property.address,
+        ownerName: property.ownerName ?? "Nguyễn Văn Hùng",
+        ownerBirthDate: property.ownerBirthDate ?? "1980-05-15",
+        ownerIdNumber: property.ownerIdNumber ?? "001080009999",
+        ownerIdDate: property.ownerIdDate ?? "2021-08-20",
+        ownerIdPlace: property.ownerIdPlace ?? "Cục CS QLHC về TTXH",
+        ownerHometown: property.ownerHometown ?? "Phường Dịch Vọng Hậu, Quận Cầu Giấy, Hà Nội",
+        ownerPhone: property.ownerPhone ?? "0987654321",
+      })
+      .where(eq(properties.id, property.id));
+    [property] = await db.select().from(properties).where(eq(properties.id, property.id)).limit(1);
   }
 
   // Đảm bảo quan hệ quyền sở hữu
