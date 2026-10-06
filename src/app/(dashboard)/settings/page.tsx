@@ -9,6 +9,8 @@ import { ThemePresetSelector } from "@/components/shared/theme-preset-selector";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { db } from "@/db";
 import { properties, tenants } from "@/db/schema";
+import { ServicesManager } from "@/features/services/components/services-manager";
+import { listPropertyServices } from "@/features/services/queries";
 import { SettingsForm } from "@/features/settings/components/settings-form";
 import { requireContext } from "@/lib/session";
 
@@ -30,6 +32,8 @@ export default async function SettingsPage() {
     tenantProfile = tp;
   }
 
+  const servicesList = !isTenant ? await listPropertyServices(ctx.propertyId) : [];
+
   return (
     <PageTransition className="space-y-8">
       <PageHeader
@@ -38,9 +42,9 @@ export default async function SettingsPage() {
       />
 
       <div className={isTenant ? "max-w-xl space-y-6" : "grid gap-6 lg:grid-cols-[1fr_360px]"}>
-        {/* For Landlord: Settings form */}
+        {/* For Landlord: Settings form & Services manager */}
         {!isTenant ? (
-          <div>
+          <div className="space-y-8">
             <SettingsForm
               propertyId={ctx.propertyId}
               defaults={{
@@ -58,6 +62,10 @@ export default async function SettingsPage() {
                 ownerPhone: property.ownerPhone,
               }}
             />
+
+            <div className="rounded-xl border border-border/60 bg-card p-5 shadow-xs">
+              <ServicesManager propertyId={ctx.propertyId} initialServices={servicesList} />
+            </div>
           </div>
         ) : (
           /* For Tenant: Personal Info Card */

@@ -28,6 +28,7 @@ type Props = {
   monthlyRent: number;
   contractStart: string;
   contractEnd: string | null;
+  defaultServices?: Array<{ id: string; name: string; amount: number; quantity: number }>;
 };
 
 export function MeterSheet(props: Props) {
@@ -36,10 +37,14 @@ export function MeterSheet(props: Props) {
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<
     Array<{ id: string; name: string; amount: number; quantity: number }>
-  >([
-    { id: "srv-trash", name: "Phí rác", amount: 30000, quantity: 1 },
-    { id: "srv-wifi", name: "Wi-Fi / Internet", amount: 50000, quantity: 1 },
-  ]);
+  >(
+    props.defaultServices && props.defaultServices.length > 0
+      ? props.defaultServices
+      : [
+          { id: "srv-trash", name: "Phí rác", amount: 30000, quantity: 1 },
+          { id: "srv-wifi", name: "Wi-Fi / Internet", amount: 50000, quantity: 1 },
+        ],
+  );
   const [electricPhoto, setElectricPhoto] = useState<string | null>(null);
   const [waterPhoto, setWaterPhoto] = useState<string | null>(null);
 

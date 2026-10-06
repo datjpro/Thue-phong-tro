@@ -12,6 +12,7 @@ import { listInvoices } from "@/features/invoices/queries";
 import { RoomStatusDropdown } from "@/features/rooms/components/room-status-dropdown";
 import { getRoomTypeLabel } from "@/features/rooms/constants";
 import { getRoomDetail } from "@/features/rooms/queries";
+import { getContractServices, listPropertyServices } from "@/features/services/queries";
 import { TenantAccountCard } from "@/features/tenants/components/tenant-account-card";
 import { currentPeriod, formatDate, formatPeriodShort, todayVn } from "@/lib/dates";
 import { invoiceDisplayStatus } from "@/lib/invoice-status";
@@ -42,10 +43,28 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
     assets,
   } = detail;
 
+  const primaryTenant = tenants[0]?.fullName ?? "";
+
   const history = (await listInvoices(propertyId)).filter(
     (i) => i.roomId === id && i.period !== period,
   );
-  const primaryTenant = tenants[0]?.fullName ?? null;
+  const contractSvcs = contract ? await getContractServices(propertyId, contract.id) : [];
+  const defaultServices =
+    contractSvcs.length > 0
+      ? contractSvcs.map((cs) => ({
+          id: cs.serviceId,
+          name: cs.name,
+          amount: cs.effectivePrice,
+          quantity: cs.quantity,
+        }))
+      : (await listPropertyServices(propertyId))
+          .filter((s) => s.isActive === "yes")
+          .map((s) => ({
+            id: s.id,
+            name: s.name,
+            amount: s.unitPrice,
+            quantity: 1,
+          }));
 
   return (
     <PageTransition className="mx-auto max-w-2xl space-y-8 pb-12 lg:pb-8">
@@ -260,6 +279,7 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
             monthlyRent={contract.rentPrice}
             contractStart={contract.startDate}
             contractEnd={contract.endDate}
+            defaultServices={defaultServices}
           />
         ) : monthInvoice ? (
           <Link
