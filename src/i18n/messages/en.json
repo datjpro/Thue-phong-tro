@@ -10,6 +10,7 @@
     "more": "More",
     "tenants": "Tenants",
     "contracts": "Contracts",
+    "reports": "Reports",
     "maintenance": "Repairs",
     "settings": "Settings"
   },
@@ -35,6 +36,7 @@
     "open": "Reported",
     "in_progress": "In progress",
     "done": "Done",
+    "rejected": "Rejected",
     "changeStatus": "Change status"
   },
   "errors": {
@@ -49,6 +51,7 @@
     "invoiceExists": "This room already has an invoice for this period.",
     "readingLower": "The new reading is lower than the old one. Check it or choose 'Meter replaced'.",
     "overpay": "The amount is more than what is still due. Lower the amount.",
+    "duplicateRoomName": "A room with this name already exists in this property. Please choose another name or number.",
     "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
     "pageTitle": "This page could not load",
     "pageDesc": "Something went wrong fetching data. Reload; if it persists, check the database connection.",

@@ -2,11 +2,11 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { hashPassword } from "better-auth/crypto";
 import { db } from "@/db";
-import { propertyMembers, rooms, tenants, user } from "@/db/schema";
+import { account, propertyMembers, rooms, tenants, user } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
 import { logAuditEvent } from "@/lib/audit";
-import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { assertMember, requireContext } from "@/lib/session";
 import { type TenantInput, tenantSchema } from "./schemas";
@@ -24,14 +24,23 @@ export async function createTenant(
 
   const parsed = tenantSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
 
   const [row] = await db
     .insert(tenants)
     .values({
       propertyId,
-      fullName: parsed.data.fullName,
-      phone: parsed.data.phone || null,
-      idNumber: parsed.data.idNumber || null,
+      fullName: v.fullName,
+      phone: v.phone || null,
+      idNumber: v.idNumber || null,
+      birthDate: v.birthDate || null,
+      gender: v.gender || null,
+      hometown: v.hometown || null,
+      workplace: v.workplace || null,
+      licensePlate: v.licensePlate || null,
+      idCardFrontUrl: v.idCardFrontUrl || null,
+      idCardBackUrl: v.idCardBackUrl || null,
+      notes: v.notes || null,
     })
     .returning({ id: tenants.id });
 
@@ -41,11 +50,44 @@ export async function createTenant(
     action: "create_tenant",
     resourceType: "tenant",
     resourceId: row.id,
-    details: { fullName: parsed.data.fullName },
+    details: { fullName: v.fullName, idNumber: v.idNumber },
   });
 
   revalidatePath("/tenants");
   return success({ id: row.id });
+}
+
+export async function updateTenant(
+  propertyId: string,
+  tenantId: string,
+  input: TenantInput,
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+
+  const parsed = tenantSchema.safeParse(input);
+  if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+
+  await db
+    .update(tenants)
+    .set({
+      fullName: v.fullName,
+      phone: v.phone || null,
+      idNumber: v.idNumber || null,
+      birthDate: v.birthDate || null,
+      gender: v.gender || null,
+      hometown: v.hometown || null,
+      workplace: v.workplace || null,
+      licensePlate: v.licensePlate || null,
+      idCardFrontUrl: v.idCardFrontUrl || null,
+      idCardBackUrl: v.idCardBackUrl || null,
+      notes: v.notes || null,
+    })
+    .where(and(eq(tenants.propertyId, propertyId), eq(tenants.id, tenantId)));
+
+  revalidatePath("/tenants");
+  return success(undefined);
 }
 
 export async function deleteTenant(propertyId: string, tenantId: string): Promise<ActionResult> {
@@ -105,18 +147,40 @@ export async function provisionTenantAccount(
   const email = formatTenantEmail(room.name);
   const password = tenant.idNumber.trim();
 
-  // 3. Tìm hoặc tạo user qua Better Auth
+  // 3. Tìm hoặc tạo user trực tiếp mà KHÔNG ghi đè cookie phiên của chủ trọ
   let [accountUser] = await db.select().from(user).where(eq(user.email, email)).limit(1);
+  const hashedPassword = await hashPassword(password);
 
   if (!accountUser) {
-    await auth.api.signUpEmail({
-      body: {
-        email,
-        password,
-        name: tenant.fullName,
-      },
+    const newUserId = crypto.randomUUID();
+    await db.transaction(async (tx) => {
+      const [createdUser] = await tx
+        .insert(user)
+        .values({
+          id: newUserId,
+          name: tenant.fullName,
+          email,
+          emailVerified: true,
+        })
+        .returning();
+
+      await tx.insert(account).values({
+        id: crypto.randomUUID(),
+        accountId: newUserId,
+        providerId: "credential",
+        userId: newUserId,
+        password: hashedPassword,
+      });
+
+      accountUser = createdUser;
     });
-    [accountUser] = await db.select().from(user).where(eq(user.email, email)).limit(1);
+  } else {
+    // Nếu tài khoản đã tồn tại, đồng bộ mật khẩu CCCD mới và họ tên
+    await db
+      .update(account)
+      .set({ password: hashedPassword })
+      .where(eq(account.userId, accountUser.id));
+    await db.update(user).set({ name: tenant.fullName }).where(eq(user.id, accountUser.id));
   }
 
   if (accountUser) {

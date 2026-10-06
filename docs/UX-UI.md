@@ -21,45 +21,49 @@ Tài liệu này là nguồn sự thật cho mọi quyết định giao diện. 
 
 ## 3. Hướng thị giác
 
-Cảm giác: **sổ sách gọn gàng của một nhà trọ được chăm kỹ**: sạch, đáng tin, ấm vừa phải. Không phải dashboard SaaS xám xanh, không phải giao diện "tài chính" lạnh lùng.
+Cảm giác: **hiện đại, tinh gọn và sắc nét** của một nền tảng quản lý nhà trọ chuyên nghiệp: sạch sẽ, uy tín, trực quan và tập trung vào số liệu thực tế.
 
-Một điểm nhớ duy nhất: **Tờ hóa đơn tháng** (xem mục 7.1). Đây là thành phần được đầu tư thiết kế nhất. Mọi thứ xung quanh giữ tiết chế.
+Một điểm nhớ duy nhất: **Tờ hóa đơn tháng** (xem mục 7.1). Đây là thành phần được đầu tư thiết kế chi tiết nhất. Mọi thứ xung quanh giữ tiết chế và đồng bộ theo bảng màu hiện đại.
 
 Tránh những lựa chọn mặc định thường gặp:
 
-- Nền kem + serif + màu đất nung.
-- Nền đen + một màu xanh/đỏ chói.
-- Chia nội dung thành các thẻ bo góc giống hệt nhau, cùng một bóng mờ xám, nền gradient trang trí.
-- Nhãn IN HOA giãn chữ phía trên mỗi tiêu đề, chuỗi nối bằng dấu chấm giữa (`A · B · C`), mũi tên `→` cuối mọi nút.
-- Nhấn một từ trong tiêu đề bằng màu khác hoặc in nghiêng.
+- Nền kem xỉn màu hoặc bảng màu quá cổ điển.
+- Nền đen tương phản gắt với một màu chói.
+- Chia nội dung thành các thẻ bo góc thiếu phân cấp, nền gradient trang trí lòe loẹt.
+- Nhãn IN HOA giãn chữ quá mức phía trên mỗi tiêu đề.
 
 ## 4. Design tokens
 
-### 4.1 Màu
+### 4.1 Bảng màu chính (Modern Ocean & Slate Blue)
 
-| Tên | Hex | Vai trò |
-|---|---|---|
-| Giấy | `#F5F8F6` | Nền trang |
-| Mặt | `#FFFFFF` | Nền bảng, form, tờ hóa đơn |
-| Mực | `#14231F` | Chữ chính |
-| Lá | `#1D6B57` | Màu thương hiệu, nút chính, liên kết |
-| Nghệ | `#D99A1E` | Điểm nhấn chú ý (sắp đến hạn, cần nhập) |
-| Sương | `#DCE5E0` | Viền, đường phân cách, nền phụ |
+| Tên token | Hex (Light) | Hex (Dark) | Vai trò |
+|---|---|---|---|
+| Giấy (`--color-giay`) | `#F8FAFC` (Slate-50) | `#0B0F19` | Nền trang toàn ứng dụng |
+| Mặt (`--color-mat`) | `#FFFFFF` | `#131D2E` | Nền thẻ (card), bảng, form, tờ hóa đơn |
+| Mực (`--color-muc`) | `#0F172A` (Slate-900) | `#F1F5F9` (Slate-100) | Chữ chính, tiêu đề, số tiền lớn |
+| Mực phụ (`--color-muc-phu`) | `#64748B` (Slate-500) | `#94A3B8` (Slate-400) | Chữ mô tả, chú thích, metadata |
+| Lá / Biển (`--color-la`) | `#2563EB` (Blue-600) | `#3B82F6` (Blue-500) | Màu thương hiệu chủ đạo, nút chính, liên kết |
+| Nghệ (`--color-nghe`) | `#D97706` (Amber-600) | `#F59E0B` (Amber-500) | Điểm nhấn chú ý (sắp đến hạn, cần kiểm tra) |
+| Sương (`--color-suong`) | `#E2E8F0` (Slate-200) | `#1E293B` (Slate-800) | Đường viền thẻ, vách ngăn, nền phụ |
 
 Màu trạng thái (luôn đi kèm biểu tượng hoặc chữ, không dùng màu một mình):
 
-| Trạng thái | Màu | Dùng cho |
-|---|---|---|
-| Thành công | `#2E7D4F` | Đã thanh toán |
-| Cảnh báo | `#B7791F` | Sắp đến hạn, thiếu dữ liệu |
-| Nguy hiểm | `#B42318` | Quá hạn, lỗi, xóa |
-| Thông tin | `#2563A8` | Ghi chú, gợi ý |
+| Trạng thái | Hex (Light) | Hex (Dark) | Dùng cho |
+|---|---|---|---|
+| Thành công | `#16A34A` | `#22C55E` | Đã thanh toán, hoạt động tốt |
+| Cảnh báo | `#D97706` | `#F59E0B` | Sắp đến hạn, thiếu dữ liệu |
+| Nguy hiểm | `#DC2626` | `#EF4444` | Quá hạn, lỗi, xóa |
+| Thông tin | `#0284C7` | `#38BDF8` | Ghi chú, gợi ý, hướng dẫn |
 
-Chữ phụ dùng `Mực` giảm độ đậm (`#4C5F59`), phải đạt tương phản tối thiểu 4.5:1 trên nền.
+### 4.2 Các chủ đề mở rộng (Theme Presets)
+Hệ thống hỗ trợ 5 chủ đề màu linh hoạt lưu qua `localStorage.getItem("theme_preset")`:
+1. **Xanh Đại Dương (`ocean`)** (Mặc định): Sắc xanh biển hiện đại, uy tín và chuẩn SaaS.
+2. **Xanh Ngọc Bảo (`emerald`)**: Màu xanh ngọc lục bảo tươi mát, gần gũi.
+3. **Tím Than Pro (`indigo`)**: Sắc tím indigo công nghệ cao cấp.
+4. **Hổ Phách Ấm (`amber`)**: Tông vàng đồng ấm cúng.
+5. **Xám Tối Giản (`slate`)**: Phong cách monochromatic tối giản, tập trung số liệu.
 
-**Dark mode**: bắt buộc có. Nền `#0F1A17`, mặt `#16241F`, chữ `#E6EFEA`, Lá sáng lên thành `#4FB596`. Không đảo màu tự động; chỉnh tay từng token.
-
-### 4.2 Typography
+### 4.3 Typography
 
 - **Một họ chữ: Be Vietnam Pro** (thiết kế riêng cho tiếng Việt, dấu thanh rõ và không bị cắt). Dự phòng: `system-ui, sans-serif`.
 - Trọng lượng: 400 (nội dung), 500 (nhãn, nút), 700 (tiêu đề, số tiền).
@@ -78,13 +82,13 @@ Chữ phụ dùng `Mực` giảm độ đậm (`#4C5F59`), phải đạt tương
 - Độ dài dòng tối đa ~70 ký tự cho đoạn văn.
 - Không viết hoa toàn bộ để làm nhãn. Dùng sentence case.
 
-### 4.3 Khoảng cách, bo góc, đổ bóng
+### 4.4 Khoảng cách, bo góc, đổ bóng
 
 - Đơn vị cơ sở 4px. Dùng thang 4 / 8 / 12 / 16 / 24 / 32 / 48.
-- Bo góc có thứ bậc, không dùng một giá trị cho tất cả: ô nhập và nút 8px, bảng và panel 12px, tờ hóa đơn 4px (giữ cảm giác giấy), avatar tròn.
+- Bo góc có thứ bậc, không dùng một giá trị cho tất cả: ô nhập và nút 8px, bảng và panel 12px, tờ hóa đơn 6px, avatar tròn.
 - Phân cấp bằng **viền và khoảng trắng** trước, đổ bóng sau. Chỉ dùng bóng cho lớp nổi (dropdown, dialog, sheet).
 
-### 4.4 Cấu hình Tailwind v4
+### 4.5 Cấu hình Tailwind v4
 
 Khai báo token trong `src/app/globals.css`, không hard-code hex trong component:
 
@@ -94,29 +98,29 @@ Khai báo token trong `src/app/globals.css`, không hard-code hex trong componen
 @theme {
   --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
 
-  --color-giay: #F5F8F6;
+  --color-giay: #F8FAFC;
   --color-mat: #FFFFFF;
-  --color-muc: #14231F;
-  --color-muc-phu: #4C5F59;
-  --color-la: #1D6B57;
-  --color-nghe: #D99A1E;
-  --color-suong: #DCE5E0;
+  --color-muc: #0F172A;
+  --color-muc-phu: #64748B;
+  --color-la: #2563EB;
+  --color-nghe: #D97706;
+  --color-suong: #E2E8F0;
 
-  --color-success: #2E7D4F;
-  --color-warning: #B7791F;
-  --color-danger: #B42318;
-  --color-info: #2563A8;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #0284C7;
 
   --radius-control: 8px;
   --radius-panel: 12px;
-  --radius-sheet: 4px;
+  --radius-sheet: 6px;
 }
 
 :root[data-theme="dark"] {
-  --color-giay: #0F1A17;
-  --color-mat: #16241F;
-  --color-muc: #E6EFEA;
-  --color-la: #4FB596;
+  --color-giay: #0B0F19;
+  --color-mat: #131D2E;
+  --color-muc: #F1F5F9;
+  --color-la: #3B82F6;
 }
 ```
 

@@ -6,6 +6,7 @@ import { moreItems } from "@/components/shared/nav-items";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
 import { SignOutButton } from "@/components/shared/sign-out-button";
+import { ThemePresetSelector } from "@/components/shared/theme-preset-selector";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export default async function MorePage() {
@@ -46,8 +47,17 @@ export default async function MorePage() {
           </div>
 
           <div className="pt-3 border-t border-border/40">
-            <span className="text-xs font-medium text-muted-foreground block mb-2">Giao diện</span>
+            <span className="text-xs font-medium text-muted-foreground block mb-2">
+              Chế độ sáng / tối
+            </span>
             <ThemeToggle />
+          </div>
+
+          <div className="pt-3 border-t border-border/40">
+            <span className="text-xs font-medium text-muted-foreground block mb-2">
+              Màu sắc chủ đề (Theme)
+            </span>
+            <ThemePresetSelector />
           </div>
 
           <div className="pt-3 border-t border-border/40">

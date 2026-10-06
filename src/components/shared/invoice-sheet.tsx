@@ -12,9 +12,13 @@ export type InvoiceSheetData = {
   electricUsage: number;
   electricUnitPrice: number;
   electricAmount: number;
+  electricPrev?: number | null;
+  electricCurr?: number | null;
   waterUsage: number;
   waterUnitPrice: number;
   waterAmount: number;
+  waterPrev?: number | null;
+  waterCurr?: number | null;
   otherFee: number;
   otherFeeNote: string | null;
   total: number;
@@ -27,7 +31,7 @@ function Line({ label, amount, sub }: { label: string; amount: number; sub?: str
     <div className="flex items-baseline gap-2 py-2">
       <div className="min-w-0">
         <span className="text-base font-normal text-muc">{label}</span>
-        {sub ? <p className="text-xs text-muc-phu">{sub}</p> : null}
+        {sub ? <p className="text-xs text-muc-phu mt-0.5">{sub}</p> : null}
       </div>
       <span
         className="mb-1 min-w-4 flex-1 self-end border-b border-dotted border-suong"
@@ -61,14 +65,44 @@ export function InvoiceSheet({ data, today }: { data: InvoiceSheetData; today: s
           Icon: Clock,
         };
 
+  const hasElectricReadings =
+    data.electricPrev !== undefined &&
+    data.electricPrev !== null &&
+    data.electricCurr !== undefined &&
+    data.electricCurr !== null;
+
+  const hasWaterReadings =
+    data.waterPrev !== undefined &&
+    data.waterPrev !== null &&
+    data.waterCurr !== undefined &&
+    data.waterCurr !== null;
+
+  const electricSub =
+    hasElectricReadings &&
+    data.electricPrev !== null &&
+    data.electricPrev !== undefined &&
+    data.electricCurr !== null &&
+    data.electricCurr !== undefined
+      ? `Số cũ: ${formatNumber(data.electricPrev)} ➔ Số mới: ${formatNumber(data.electricCurr)} (Dùng: ${formatNumber(data.electricUsage)} ${t("units.kwh")}) × ${formatMoney(data.electricUnitPrice)}`
+      : `${formatNumber(data.electricUsage)} ${t("units.kwh")} × ${formatMoney(data.electricUnitPrice)}`;
+
+  const waterSub =
+    hasWaterReadings &&
+    data.waterPrev !== null &&
+    data.waterPrev !== undefined &&
+    data.waterCurr !== null &&
+    data.waterCurr !== undefined
+      ? `Số cũ: ${formatNumber(data.waterPrev)} ➔ Số mới: ${formatNumber(data.waterCurr)} (Dùng: ${formatNumber(data.waterUsage)} ${t("units.m3")}) × ${formatMoney(data.waterUnitPrice)}`
+      : `${formatNumber(data.waterUsage)} ${t("units.m3")} × ${formatMoney(data.waterUnitPrice)}`;
+
   return (
     <article className="invoice-sheet-tear relative w-full rounded-[4px] border border-suong bg-mat p-5 pb-7 select-none print:border-black print:bg-white print:text-black">
       {/* Header phiếu: Mã/kỳ bên trái, Con dấu góc trên bên phải */}
       <div className="flex items-start justify-between pb-3">
         <div>
-          <span className="text-xs font-medium text-muc-phu">Phiếu thu tháng</span>
+          <span className="text-xs font-medium text-muc-phu">Phiếu thu kỳ</span>
           <p className="text-base font-semibold text-muc">
-            {data.period.slice(5, 7)}/{data.period.slice(0, 4)}
+            Tháng {data.period.slice(5, 7)}/{data.period.slice(0, 4)}
           </p>
         </div>
         <div
@@ -86,16 +120,8 @@ export function InvoiceSheet({ data, today }: { data: InvoiceSheetData; today: s
       {/* Danh sách các khoản: Nhãn ……… Số tiền */}
       <div className="space-y-0.5 border-t border-suong/70 pt-2">
         <Line label={t("invoices.roomFee")} amount={data.roomFee} />
-        <Line
-          label={t("invoices.electric")}
-          sub={`${formatNumber(data.electricUsage)} ${t("units.kwh")} × ${formatMoney(data.electricUnitPrice)}`}
-          amount={data.electricAmount}
-        />
-        <Line
-          label={t("invoices.water")}
-          sub={`${formatNumber(data.waterUsage)} ${t("units.m3")} × ${formatMoney(data.waterUnitPrice)}`}
-          amount={data.waterAmount}
-        />
+        <Line label={t("invoices.electric")} sub={electricSub} amount={data.electricAmount} />
+        <Line label={t("invoices.water")} sub={waterSub} amount={data.waterAmount} />
         {data.otherFee > 0 ? (
           <Line label={data.otherFeeNote || t("invoices.otherFee")} amount={data.otherFee} />
         ) : null}

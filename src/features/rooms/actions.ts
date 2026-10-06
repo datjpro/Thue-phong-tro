@@ -1,13 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { rooms } from "@/db/schema";
+import { roomAssets, roomBeds, rooms } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
 import { logAuditEvent } from "@/lib/audit";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { assertManager, requireContext } from "@/lib/session";
-import { type RoomInput, roomSchema } from "./schemas";
+import { type RoomBedInput, type RoomInput, roomBedSchema, roomSchema } from "./schemas";
 
 export async function createRoom(
   propertyId: string,
@@ -23,16 +24,46 @@ export async function createRoom(
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
 
+  // Kiểm tra trùng tên phòng trong cùng nhà trọ
+  const [existing] = await db
+    .select({ id: rooms.id, name: rooms.name })
+    .from(rooms)
+    .where(
+      and(
+        eq(rooms.propertyId, propertyId),
+        sql`lower(trim(${rooms.name})) = lower(trim(${v.name}))`,
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    return fail("duplicateRoomName");
+  }
+
   const [row] = await db
     .insert(rooms)
     .values({
       propertyId,
       name: v.name,
-      floor: v.floor || null,
-      area: v.area || null,
+      floor: v.floor ?? null,
+      area: v.area ?? null,
       rentPrice: v.rentPrice,
+      roomType: v.roomType,
     })
     .returning({ id: rooms.id });
+
+  // Tự động lưu danh sách trang thiết bị / nội thất đã tích chọn vào bảng room_assets
+  if (v.selectedAssets && v.selectedAssets.length > 0) {
+    const assetValues = v.selectedAssets.map((a) => ({
+      propertyId,
+      roomId: row.id,
+      name: a.name,
+      category: a.category,
+      quantity: a.quantity > 0 ? a.quantity : 1,
+      condition: "good" as const,
+    }));
+    await db.insert(roomAssets).values(assetValues);
+  }
 
   await logAuditEvent({
     propertyId,
@@ -40,9 +71,104 @@ export async function createRoom(
     action: "create_room",
     resourceType: "room",
     resourceId: row.id,
-    details: { name: v.name, rentPrice: v.rentPrice },
+    details: { name: v.name, rentPrice: v.rentPrice, roomType: v.roomType },
   });
 
+  revalidatePath("/");
   revalidatePath("/rooms");
   return success({ id: row.id });
+}
+
+export async function updateRoomStatus(
+  propertyId: string,
+  roomId: string,
+  status: "vacant" | "maintenance" | "occupied",
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  if (!["vacant", "maintenance", "occupied"].includes(status)) {
+    return fail("invalidInput");
+  }
+
+  await db
+    .update(rooms)
+    .set({ status })
+    .where(and(eq(rooms.propertyId, propertyId), eq(rooms.id, roomId)));
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "update_room_status",
+    resourceType: "room",
+    resourceId: roomId,
+    details: { status },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/rooms");
+  revalidatePath(`/rooms/${roomId}`);
+  return success(undefined);
+}
+
+export async function addRoomBed(
+  propertyId: string,
+  input: RoomBedInput,
+): Promise<ActionResult<{ id: string }>> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  const parsed = roomBedSchema.safeParse(input);
+  if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+
+  const [bed] = await db
+    .insert(roomBeds)
+    .values({
+      propertyId,
+      roomId: v.roomId,
+      name: v.name,
+      rentPrice: v.rentPrice,
+      status: "vacant",
+    })
+    .returning({ id: roomBeds.id });
+
+  revalidatePath(`/rooms/${v.roomId}`);
+  return success({ id: bed.id });
+}
+
+export async function updateBedStatus(
+  propertyId: string,
+  bedId: string,
+  roomId: string,
+  status: "vacant" | "maintenance" | "occupied",
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  if (!["vacant", "maintenance", "occupied"].includes(status)) {
+    return fail("invalidInput");
+  }
+
+  await db
+    .update(roomBeds)
+    .set({ status })
+    .where(and(eq(roomBeds.propertyId, propertyId), eq(roomBeds.id, bedId)));
+
+  revalidatePath(`/rooms/${roomId}`);
+  return success(undefined);
+}
+
+export async function deleteRoomBed(
+  propertyId: string,
+  bedId: string,
+  roomId: string,
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  await db.delete(roomBeds).where(and(eq(roomBeds.propertyId, propertyId), eq(roomBeds.id, bedId)));
+
+  revalidatePath(`/rooms/${roomId}`);
+  return success(undefined);
 }

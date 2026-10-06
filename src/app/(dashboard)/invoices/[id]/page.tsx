@@ -24,7 +24,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const { invoice, roomName, tenantName, payments } = detail;
+  const { invoice, roomName, tenantName, payments, reading } = detail;
   const remaining = invoice.total - invoice.paidAmount;
 
   return (
@@ -52,7 +52,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Cột trái: Tờ hóa đơn tháng (thành phần đặc trưng) */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <InvoiceSheet today={todayVn()} data={{ ...invoice, roomName, tenantName }} />
+          <InvoiceSheet
+            today={todayVn()}
+            data={{
+              ...invoice,
+              roomName,
+              tenantName,
+              electricPrev: reading?.electricPrev,
+              electricCurr: reading?.electricCurr,
+              waterPrev: reading?.waterPrev,
+              waterCurr: reading?.waterCurr,
+            }}
+          />
 
           {remaining > 0 ? (
             <div className="no-print max-w-md pt-2">

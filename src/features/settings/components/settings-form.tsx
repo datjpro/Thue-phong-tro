@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
+import { BirthDatePicker } from "@/components/shared/birth-date-picker";
 import { Field } from "@/components/shared/field";
 import { NumberInput } from "@/components/shared/number-input";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,97 @@ export function SettingsForm({
           />
         )}
       </Field>
+      <Field id="address" label="Địa chỉ khu trọ">
+        {(p) => (
+          <Input
+            id={p.id}
+            placeholder="Ví dụ: Số 123 Đường Cầu Giấy, Hà Nội..."
+            {...form.register("address")}
+          />
+        )}
+      </Field>
+
+      {/* Thông tin đại diện chủ trọ (Bên A trong hợp đồng) */}
+      <div className="pt-3 border-t border-border/60 space-y-3">
+        <h4 className="font-bold text-sm text-foreground">
+          Thông tin chủ trọ (Đại diện Bên A trong hợp đồng)
+        </h4>
+        <p className="text-xs text-muted-foreground -mt-1">
+          Các thông tin này sẽ tự động điền vào Hợp đồng thuê phòng khi in hoặc xuất bản điện tử.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field id="ownerName" label="Họ tên chủ nhà">
+            {(p) => <Input id={p.id} placeholder="Nguyễn Văn A" {...form.register("ownerName")} />}
+          </Field>
+
+          <Field id="ownerBirthDate" label="Ngày sinh">
+            {(p) => (
+              <Controller
+                control={form.control}
+                name="ownerBirthDate"
+                render={({ field }) => (
+                  <BirthDatePicker id={p.id} value={field.value} onChange={field.onChange} />
+                )}
+              />
+            )}
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field id="ownerPhone" label="Số điện thoại">
+            {(p) => <Input id={p.id} placeholder="0912345678" {...form.register("ownerPhone")} />}
+          </Field>
+
+          <Field id="ownerIdNumber" label="Số CCCD">
+            {(p) => (
+              <Input id={p.id} placeholder="00109xxxxxxxx" {...form.register("ownerIdNumber")} />
+            )}
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field id="ownerIdDate" label="Ngày cấp CCCD">
+            {(p) => (
+              <Controller
+                control={form.control}
+                name="ownerIdDate"
+                render={({ field }) => (
+                  <BirthDatePicker
+                    id={p.id}
+                    value={field.value}
+                    onChange={field.onChange}
+                    showAge={false}
+                    minYear={1990}
+                    placeholder={{ day: "Ngày", month: "Tháng", year: "Năm" }}
+                  />
+                )}
+              />
+            )}
+          </Field>
+
+          <Field id="ownerIdPlace" label="Nơi cấp CCCD">
+            {(p) => (
+              <Input
+                id={p.id}
+                placeholder="Cục CS QLHC về TTXH"
+                {...form.register("ownerIdPlace")}
+              />
+            )}
+          </Field>
+        </div>
+
+        <Field id="ownerHometown" label="Nơi đăng ký HK thường trú">
+          {(p) => (
+            <Input
+              id={p.id}
+              placeholder="Xã/Phường, Quận/Huyện, Tỉnh/Thành phố..."
+              {...form.register("ownerHometown")}
+            />
+          )}
+        </Field>
+      </div>
+
       <Button
         type="submit"
         variant="primary"

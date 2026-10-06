@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, CircleDashed, Clock, Wrench } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDashed, Clock, Wrench, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,8 @@ export type BadgeKind =
   | "ended"
   | "open"
   | "in_progress"
-  | "done";
+  | "done"
+  | "rejected";
 
 const styles: Record<BadgeKind, { tone: string; icon: typeof Clock }> = {
   paid: { tone: "text-success border-success/30 bg-success/10", icon: CheckCircle2 },
@@ -32,6 +33,7 @@ const styles: Record<BadgeKind, { tone: string; icon: typeof Clock }> = {
   open: { tone: "text-danger border-danger/30 bg-danger/10", icon: AlertTriangle },
   vacant: { tone: "text-info border-info/30 bg-info/10", icon: CircleDashed },
   ended: { tone: "text-muc-phu border-suong bg-mat", icon: CircleDashed },
+  rejected: { tone: "text-muted-foreground border-border bg-muted/50", icon: XCircle },
 };
 
 /** Một bộ trạng thái dùng thống nhất: luôn có biểu tượng + chữ, không dùng màu một mình. */

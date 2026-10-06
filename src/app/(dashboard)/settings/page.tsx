@@ -5,12 +5,13 @@ import { FontSizeSelector } from "@/components/shared/font-size-selector";
 import { LocaleToggle } from "@/components/shared/locale-toggle";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
+import { ThemePresetSelector } from "@/components/shared/theme-preset-selector";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { db } from "@/db";
 import { properties, tenants } from "@/db/schema";
-import { SecurityPanel } from "@/features/settings/components/security-panel";
+import { ServicesManager } from "@/features/services/components/services-manager";
+import { listPropertyServices } from "@/features/services/queries";
 import { SettingsForm } from "@/features/settings/components/settings-form";
-import { listAuditLogs } from "@/features/settings/queries";
 import { requireContext } from "@/lib/session";
 
 export default async function SettingsPage() {
@@ -31,7 +32,7 @@ export default async function SettingsPage() {
     tenantProfile = tp;
   }
 
-  const auditLogs = !isTenant ? await listAuditLogs(ctx.propertyId, 15) : [];
+  const servicesList = !isTenant ? await listPropertyServices(ctx.propertyId) : [];
 
   return (
     <PageTransition className="space-y-8">
@@ -41,18 +42,30 @@ export default async function SettingsPage() {
       />
 
       <div className={isTenant ? "max-w-xl space-y-6" : "grid gap-6 lg:grid-cols-[1fr_360px]"}>
-        {/* For Landlord: Settings form */}
+        {/* For Landlord: Settings form & Services manager */}
         {!isTenant ? (
-          <div>
+          <div className="space-y-8">
             <SettingsForm
               propertyId={ctx.propertyId}
               defaults={{
                 name: property.name,
+                address: property.address,
                 electricPrice: property.electricPrice,
                 waterPrice: property.waterPrice,
                 dueDay: property.dueDay,
+                ownerName: property.ownerName,
+                ownerBirthDate: property.ownerBirthDate,
+                ownerIdNumber: property.ownerIdNumber,
+                ownerIdDate: property.ownerIdDate,
+                ownerIdPlace: property.ownerIdPlace,
+                ownerHometown: property.ownerHometown,
+                ownerPhone: property.ownerPhone,
               }}
             />
+
+            <div className="rounded-xl border border-border/60 bg-card p-5 shadow-xs">
+              <ServicesManager propertyId={ctx.propertyId} initialServices={servicesList} />
+            </div>
           </div>
         ) : (
           /* For Tenant: Personal Info Card */
@@ -106,9 +119,15 @@ export default async function SettingsPage() {
               </div>
               <div className="pt-3 border-t border-suong/60">
                 <span className="text-xs font-medium text-muc-phu block mb-1.5">
-                  Chủ đề hiển thị
+                  Chế độ sáng / tối
                 </span>
                 <ThemeToggle />
+              </div>
+              <div className="pt-3 border-t border-suong/60">
+                <span className="text-xs font-medium text-muc-phu block mb-1.5">
+                  Màu sắc chủ đạo (Theme)
+                </span>
+                <ThemePresetSelector />
               </div>
               <div className="pt-3 border-t border-suong/60">
                 <span className="text-xs font-medium text-muc-phu block mb-1.5">
@@ -120,17 +139,6 @@ export default async function SettingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Security & Audit Logs Section */}
-      <section
-        aria-labelledby="security-section-title"
-        className="space-y-3 pt-4 border-t border-border/60"
-      >
-        <h2 id="security-section-title" className="text-lg font-bold text-foreground">
-          Bảo mật & An toàn dữ liệu
-        </h2>
-        <SecurityPanel propertyId={ctx.propertyId} auditLogs={auditLogs} isTenant={isTenant} />
-      </section>
     </PageTransition>
   );
 }

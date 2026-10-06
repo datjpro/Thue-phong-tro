@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   FileText,
   Home,
   LayoutDashboard,
@@ -9,13 +10,14 @@ import {
   Wrench,
 } from "lucide-react";
 
-/** Thứ tự 7 mục menu trong sidebar desktop theo đúng AGENTS.md */
+/** Các mục menu trong sidebar desktop */
 export const sidebarNavItems = [
   { href: "/", key: "overview", icon: LayoutDashboard },
   { href: "/rooms", key: "rooms", icon: Home },
   { href: "/invoices", key: "invoices", icon: Receipt },
   { href: "/tenants", key: "tenants", icon: Users },
   { href: "/contracts", key: "contracts", icon: FileText },
+  { href: "/reports", key: "reports", icon: BarChart3 },
   { href: "/maintenance", key: "maintenance", icon: Wrench },
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;
@@ -28,7 +30,7 @@ export const bottomNavItems = [
   { href: "/more", key: "more", icon: MoreHorizontal },
 ] as const;
 
-/** 4 mục menu dành riêng cho Người thuê */
+/** Các mục menu dành riêng cho Người thuê */
 export const tenantSidebarNavItems = [
   { href: "/", key: "myRoom", icon: Home },
   { href: "/invoices", key: "invoices", icon: Receipt },
@@ -47,6 +49,7 @@ export const tenantBottomNavItems = [
 export const moreItems = [
   { href: "/tenants", key: "tenants", icon: Users },
   { href: "/contracts", key: "contracts", icon: FileText },
+  { href: "/reports", key: "reports", icon: BarChart3 },
   { href: "/maintenance", key: "maintenance", icon: Wrench },
   { href: "/settings", key: "settings", icon: Settings },
 ] as const;

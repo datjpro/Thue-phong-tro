@@ -10,8 +10,25 @@ export function todayVn(now: Date = new Date()): string {
   }).format(now);
 }
 
-/** Kỳ hiện tại "YYYY-MM". */
+/**
+ * Kỳ hóa đơn theo mô hình Trả Sau (Cách 2):
+ * - Vào đầu tháng và trong suốt chu kỳ thu tiền (từ ngày 1 đến ngày 24 hàng tháng),
+ *   kỳ hóa đơn cần chốt số, lập hóa đơn và thu tiền là THÁNG VỪA QUA (tháng trước).
+ *   Ví dụ: Hôm nay là 06/10/2026 -> Kỳ hóa đơn là "2026-09" (Tháng 09/2026), hạn đóng tiền vào đầu tháng 10.
+ * - Từ ngày 25 trở đi: chuyển sang chuẩn bị cho kỳ tháng hiện tại.
+ */
 export function currentPeriod(now: Date = new Date()): string {
+  const today = todayVn(now);
+  const day = Number(today.slice(8, 10));
+  const currentMonth = today.slice(0, 7);
+  if (day < 25) {
+    return prevPeriod(currentMonth);
+  }
+  return currentMonth;
+}
+
+/** Tháng theo lịch dương "YYYY-MM" (ví dụ: ngày 06/10/2026 -> "2026-10") */
+export function calendarPeriod(now: Date = new Date()): string {
   return todayVn(now).slice(0, 7);
 }
 
@@ -57,4 +74,20 @@ export function dueDateFor(period: string, dueDay: number): string {
   const nm = m === 12 ? 1 : m + 1;
   const day = Math.min(dueDay, daysInPeriod(`${ny}-${String(nm).padStart(2, "0")}`));
   return `${ny}-${String(nm).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/** Tính tuổi từ ngày sinh (YYYY-MM-DD hoặc Date) */
+export function calculateAge(birthDate: string | Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const str = typeof birthDate === "string" ? birthDate.slice(0, 10) : todayVn(birthDate);
+  const parts = str.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+  const [birthYear, birthMonth, birthDay] = parts;
+  const [todayYear, todayMonth, todayDay] = todayVn().split("-").map(Number);
+
+  let age = todayYear - birthYear;
+  if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
+    age--;
+  }
+  return age >= 0 ? age : null;
 }

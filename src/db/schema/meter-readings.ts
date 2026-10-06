@@ -17,6 +17,8 @@ export const meterReadings = pgTable(
     electricCurr: integer("electric_curr").notNull(),
     waterPrev: integer("water_prev").notNull(),
     waterCurr: integer("water_curr").notNull(),
+    electricPhoto: text("electric_photo"), // Base64 hoặc URL ảnh công tơ điện
+    waterPhoto: text("water_photo"), // Base64 hoặc URL ảnh công tơ nước
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [unique().on(t.roomId, t.period)],

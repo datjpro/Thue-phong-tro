@@ -19,7 +19,7 @@ export async function TenantHomeView({ propertyId, detail }: TenantHomeViewProps
   const t = await getTranslations();
   const period = currentPeriod();
   const today = todayVn();
-  const { room, contract, tenants, monthInvoice } = detail;
+  const { room, contract, tenants, monthInvoice, monthReading } = detail;
 
   const history = (await listInvoices(propertyId)).filter(
     (i) => i.roomId === room.id && i.period !== period,
@@ -60,7 +60,15 @@ export async function TenantHomeView({ propertyId, detail }: TenantHomeViewProps
         {monthInvoice ? (
           <InvoiceSheet
             today={today}
-            data={{ ...monthInvoice, roomName: room.name, tenantName: primaryTenant }}
+            data={{
+              ...monthInvoice,
+              roomName: room.name,
+              tenantName: primaryTenant,
+              electricPrev: monthReading?.electricPrev,
+              electricCurr: monthReading?.electricCurr,
+              waterPrev: monthReading?.waterPrev,
+              waterCurr: monthReading?.waterCurr,
+            }}
           />
         ) : (
           <div className="rounded-[4px] border border-dashed border-suong bg-mat/50 p-6 text-center">

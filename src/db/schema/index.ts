@@ -6,5 +6,7 @@ export * from "./maintenance-requests";
 export * from "./meter-readings";
 export * from "./payments";
 export * from "./properties";
+export * from "./room-assets";
 export * from "./rooms";
+export * from "./services";
 export * from "./tenants";

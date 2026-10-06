@@ -56,6 +56,7 @@ export default async function NewContractPage({
           today={todayVn()}
           rooms={options.rooms}
           tenants={options.tenants}
+          beds={options.beds}
           defaultRoomId={roomId}
         />
       )}

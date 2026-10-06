@@ -6,16 +6,25 @@ import { auditLogs } from "@/db/schema";
 export type AuditAction =
   | "login"
   | "create_room"
+  | "update_room_status"
+  | "update_bed_status"
   | "create_tenant"
   | "grant_tenant_account"
   | "create_contract"
   | "end_contract"
   | "create_invoice"
+  | "delete_invoice"
   | "record_payment"
   | "undo_payment"
   | "update_settings"
+  | "create_service"
+  | "update_service"
+  | "delete_service"
   | "create_maintenance"
   | "update_maintenance_status"
+  | "delete_maintenance"
+  | "create_room_asset"
+  | "save_asset_handover"
   | "change_password";
 
 export interface LogAuditParams {
@@ -29,7 +38,10 @@ export interface LogAuditParams {
     | "invoice"
     | "payment"
     | "property"
+    | "service"
     | "maintenance"
+    | "asset"
+    | "asset_handover"
     | "auth";
   resourceId?: string;
   details?: Record<string, unknown>;
