@@ -11,6 +11,7 @@ export async function listContracts(propertyId: string) {
       id: contracts.id,
       roomId: contracts.roomId,
       roomName: rooms.name,
+      floor: rooms.floor,
       bedId: contracts.bedId,
       contractNumber: contracts.contractNumber,
       startDate: contracts.startDate,
