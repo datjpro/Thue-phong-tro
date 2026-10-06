@@ -5,6 +5,7 @@ import { FontSizeSelector } from "@/components/shared/font-size-selector";
 import { LocaleToggle } from "@/components/shared/locale-toggle";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
+import { ThemePresetSelector } from "@/components/shared/theme-preset-selector";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { db } from "@/db";
 import { properties, tenants } from "@/db/schema";
@@ -110,9 +111,15 @@ export default async function SettingsPage() {
               </div>
               <div className="pt-3 border-t border-suong/60">
                 <span className="text-xs font-medium text-muc-phu block mb-1.5">
-                  Chủ đề hiển thị
+                  Chế độ sáng / tối
                 </span>
                 <ThemeToggle />
+              </div>
+              <div className="pt-3 border-t border-suong/60">
+                <span className="text-xs font-medium text-muc-phu block mb-1.5">
+                  Màu sắc chủ đạo (Theme)
+                </span>
+                <ThemePresetSelector />
               </div>
               <div className="pt-3 border-t border-suong/60">
                 <span className="text-xs font-medium text-muc-phu block mb-1.5">

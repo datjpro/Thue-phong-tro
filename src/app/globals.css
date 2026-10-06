@@ -3,20 +3,21 @@
 @theme {
   --font-sans: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --color-giay: #F5F8F6;
+  /* Bảng màu Modern Ocean & Slate (Chủ đề hiện đại) */
+  --color-giay: #F8FAFC;
   --color-mat: #FFFFFF;
-  --color-muc: #14231F;
-  --color-muc-phu: #4C5F59;
-  --color-la: #1D6B57;
-  --color-la-hover: #175646;
+  --color-muc: #0F172A;
+  --color-muc-phu: #64748B;
+  --color-la: #2563EB;
+  --color-la-hover: #1D4ED8;
   --color-la-tren: #FFFFFF;
-  --color-nghe: #D99A1E;
-  --color-suong: #DCE5E0;
+  --color-nghe: #D97706;
+  --color-suong: #E2E8F0;
 
-  --color-success: #2E7D4F;
-  --color-warning: #B7791F;
-  --color-danger: #B42318;
-  --color-info: #2563A8;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #0284C7;
 
   --color-background: var(--color-giay);
   --color-foreground: var(--color-muc);
@@ -36,46 +37,93 @@
 
   --radius-control: 8px;
   --radius-panel: 12px;
-  --radius-sheet: 4px;
+  --radius-sheet: 6px;
 }
 
 :root {
-  --color-giay: #F5F8F6;
+  --color-giay: #F8FAFC;
   --color-mat: #FFFFFF;
-  --color-muc: #14231F;
-  --color-muc-phu: #4C5F59;
-  --color-la: #1D6B57;
-  --color-la-hover: #175646;
+  --color-muc: #0F172A;
+  --color-muc-phu: #64748B;
+  --color-la: #2563EB;
+  --color-la-hover: #1D4ED8;
   --color-la-tren: #FFFFFF;
-  --color-nghe: #D99A1E;
-  --color-suong: #DCE5E0;
+  --color-nghe: #D97706;
+  --color-suong: #E2E8F0;
 
-  --color-success: #2E7D4F;
-  --color-warning: #B7791F;
-  --color-danger: #B42318;
-  --color-info: #2563A8;
+  --color-success: #16A34A;
+  --color-warning: #D97706;
+  --color-danger: #DC2626;
+  --color-info: #0284C7;
 
   color-scheme: light;
 }
 
+/* Tùy chỉnh màu chủ đạo theo Preset (Light mode) */
+:root[data-theme-preset="emerald"] {
+  --color-la: #059669;
+  --color-la-hover: #047857;
+}
+
+:root[data-theme-preset="indigo"] {
+  --color-la: #4F46E5;
+  --color-la-hover: #4338CA;
+}
+
+:root[data-theme-preset="amber"] {
+  --color-la: #D97706;
+  --color-la-hover: #B45309;
+}
+
+:root[data-theme-preset="slate"] {
+  --color-la: #475569;
+  --color-la-hover: #334155;
+}
+
+/* Dark Mode */
 :root[data-theme="dark"],
 .dark {
-  --color-giay: #0F1A17;
-  --color-mat: #16241F;
-  --color-muc: #E6EFEA;
-  --color-muc-phu: #8A9E96;
-  --color-la: #4FB596;
-  --color-la-hover: #3DA083;
-  --color-la-tren: #0F1A17;
-  --color-nghe: #E5A93C;
-  --color-suong: #23352E;
+  --color-giay: #0B0F19;
+  --color-mat: #131D2E;
+  --color-muc: #F1F5F9;
+  --color-muc-phu: #94A3B8;
+  --color-la: #3B82F6;
+  --color-la-hover: #60A5FA;
+  --color-la-tren: #FFFFFF;
+  --color-nghe: #F59E0B;
+  --color-suong: #1E293B;
 
-  --color-success: #349C63;
-  --color-warning: #D48E28;
-  --color-danger: #D93829;
-  --color-info: #3B82F6;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #38BDF8;
 
   color-scheme: dark;
+}
+
+/* Tùy chỉnh màu chủ đạo theo Preset (Dark mode) */
+:root[data-theme="dark"][data-theme-preset="emerald"],
+.dark[data-theme-preset="emerald"] {
+  --color-la: #10B981;
+  --color-la-hover: #34D399;
+}
+
+:root[data-theme="dark"][data-theme-preset="indigo"],
+.dark[data-theme-preset="indigo"] {
+  --color-la: #6366F1;
+  --color-la-hover: #818CF8;
+}
+
+:root[data-theme="dark"][data-theme-preset="amber"],
+.dark[data-theme-preset="amber"] {
+  --color-la: #F59E0B;
+  --color-la-hover: #FBBF24;
+}
+
+:root[data-theme="dark"][data-theme-preset="slate"],
+.dark[data-theme-preset="slate"] {
+  --color-la: #94A3B8;
+  --color-la-hover: #CBD5E1;
 }
 
 body {
@@ -102,7 +150,7 @@ body {
   }
 }
 
-/* Con dấu "Đã thu" / "Chưa thu": khoảnh khắc nhấn của sản phẩm (UX-UI mục 10) */
+/* Con dấu "Đã thu" / "Chưa thu": khoảnh khắc nhấn của sản phẩm */
 @keyframes stamp {
   0% {
     transform: rotate(-4deg) scale(1.25);
