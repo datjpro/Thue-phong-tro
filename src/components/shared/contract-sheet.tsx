@@ -2,7 +2,6 @@
 
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 
 export type ContractAgreementData = {
@@ -18,6 +17,8 @@ export type ContractAgreementData = {
   propertyAddress: string | null;
   electricPrice?: number;
   waterPrice?: number;
+  waterPricingType?: "meter" | "per_person";
+  waterPricePerPerson?: number;
   roomName: string;
   bedName?: string | null;
   primaryTenant: {
@@ -30,10 +31,23 @@ export type ContractAgreementData = {
   } | null;
 };
 
+function parseDateParts(dateStr?: string | null) {
+  if (!dateStr) return { day: "……", month: "……", year: "20……" };
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return { day: parts[2], month: parts[1], year: parts[0] };
+  }
+  return { day: "……", month: "……", year: "20……" };
+}
+
 export function ContractSheet({ data }: { data: ContractAgreementData }) {
   function handlePrint() {
     window.print();
   }
+
+  const start = parseDateParts(data.startDate);
+  const end = parseDateParts(data.endDate);
+  const tenantBirth = parseDateParts(data.primaryTenant?.birthDate);
 
   return (
     <div className="space-y-4">
@@ -46,155 +60,201 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
           className="gap-1.5 border-border shadow-2xs"
         >
           <Printer size={15} />
-          <span>In hợp đồng điện tử</span>
+          <span>In hợp đồng</span>
         </Button>
       </div>
 
       <article className="relative mx-auto w-full max-w-3xl rounded-[4px] border border-border bg-card p-6 sm:p-10 text-card-foreground shadow-sm print:border-none print:p-0 print:shadow-none print:text-black print:bg-white text-sm leading-relaxed">
         {/* Quốc hiệu & Tiêu ngữ */}
-        <div className="text-center space-y-1 pb-4 border-b border-border/80">
-          <p className="font-bold text-xs sm:text-sm uppercase tracking-wider">
+        <div className="text-center space-y-1 pb-4">
+          <p className="font-bold text-sm sm:text-base uppercase tracking-wider text-foreground print:text-black">
             CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
           </p>
-          <p className="text-xs sm:text-sm font-semibold underline underline-offset-4">
+          <p className="text-xs sm:text-sm font-semibold underline underline-offset-4 text-foreground print:text-black">
             Độc lập – Tự do – Hạnh phúc
           </p>
-          <p className="text-[11px] text-muted-foreground pt-2 italic">---o0o---</p>
         </div>
 
         {/* Tiêu đề hợp đồng */}
-        <div className="my-6 text-center space-y-1">
+        <div className="my-5 text-center space-y-1">
           <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-tight text-foreground print:text-black">
             HỢP ĐỒNG THUÊ PHÒNG TRỌ
           </h1>
-          <p className="font-mono text-xs text-muted-foreground">
-            Mã số: {data.contractNumber || "HĐ-DTT-2026"}
+          {data.contractNumber ? (
+            <p className="text-xs text-muted-foreground print:text-gray-600 font-mono">
+              Mã hợp đồng: {data.contractNumber}
+            </p>
+          ) : null}
+        </div>
+
+        {/* Hôm nay ngày ... tại địa chỉ ... */}
+        <div className="space-y-2 mb-4 text-xs sm:text-sm">
+          <p>
+            Hôm nay ngày <strong>{start.day}</strong> tháng <strong>{start.month}</strong> năm{" "}
+            <strong>{start.year}</strong> ; tại địa chỉ:{" "}
+            <strong>
+              {data.propertyAddress || data.propertyName || "…………………………………………………………………………………………………"}
+            </strong>
           </p>
         </div>
 
-        {/* Căn cứ pháp lý */}
-        <p className="italic text-xs text-muted-foreground mb-4">
-          - Căn cứ Bộ luật Dân sự số 91/2015/QH13 và các văn bản pháp luật hiện hành liên quan;
-          <br />- Căn cứ nhu cầu và sự thỏa thuận tự nguyện của hai bên;
-        </p>
+        {/* Chúng tôi gồm */}
+        <div className="space-y-4 mb-4 text-xs sm:text-sm">
+          <p className="font-bold">Chúng tôi gồm:</p>
 
-        {/* Bên A: Bên Cho Thuê */}
-        <div className="space-y-2 mb-4">
-          <h2 className="font-bold text-sm uppercase text-primary border-b border-border/40 pb-1">
-            BÊN CHO THUÊ (BÊN A)
-          </h2>
-          <div className="grid grid-cols-1 gap-1 text-xs sm:text-sm pl-2">
+          {/* 1. Bên A */}
+          <div className="space-y-1 pl-2">
+            <p className="font-bold">1. Đại diện bên cho thuê phòng trọ (Bên A):</p>
             <p>
-              <strong>Cơ sở kinh doanh / Nhà trọ:</strong> {data.propertyName}
+              Ông/bà: <strong>{data.propertyName}</strong> Sinh ngày: ………… / ………… / ………………
             </p>
             <p>
-              <strong>Địa chỉ khu trọ:</strong> {data.propertyAddress || "Theo đăng ký kinh doanh"}
+              Nơi đăng ký HK:{" "}
+              {data.propertyAddress || "……………………………………………………………………………………………………………………………………………………"}
             </p>
+            <p>CCCD số: ………………………………. cấp ngày ……./ ……. / …………..tại ………………………………………………………………</p>
+            <p>Số điện thoại:………………………………………………………………………………………………………………………………………….</p>
           </div>
-        </div>
 
-        {/* Bên B: Bên Thuê */}
-        <div className="space-y-2 mb-4">
-          <h2 className="font-bold text-sm uppercase text-primary border-b border-border/40 pb-1">
-            BÊN THUÊ PHÒNG (BÊN B)
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs sm:text-sm pl-2">
+          {/* 2. Bên B */}
+          <div className="space-y-1 pl-2">
+            <p className="font-bold">2. Đại diện bên cho thuê phòng trọ (Bên B):</p>
             <p>
-              <strong>Họ và tên:</strong>{" "}
-              {data.primaryTenant?.fullName ||
-                "...................................................."}
-            </p>
-            <p>
-              <strong>Số CCCD:</strong>{" "}
-              {data.primaryTenant?.idNumber ||
-                "...................................................."}
-            </p>
-            <p>
-              <strong>Ngày sinh:</strong>{" "}
+              Ông/bà:{" "}
+              <strong>{data.primaryTenant?.fullName || "…………………………………………………………………………"}</strong> Sinh
+              ngày:{" "}
               {data.primaryTenant?.birthDate
-                ? formatDate(data.primaryTenant.birthDate)
-                : "...................................................."}
+                ? `${tenantBirth.day} / ${tenantBirth.month} / ${tenantBirth.year}`
+                : "…………………………………"}
             </p>
             <p>
-              <strong>Điện thoại:</strong>{" "}
-              {data.primaryTenant?.phone || "...................................................."}
+              Nơi đăng ký HK:{" "}
+              <strong>
+                {data.primaryTenant?.hometown ||
+                  "……………………………………………………………………………………………………………………………………………………"}
+              </strong>
             </p>
-            <p className="sm:col-span-2">
-              <strong>Nơi ĐK thường trú:</strong>{" "}
-              {data.primaryTenant?.hometown ||
-                "...................................................................................................."}
+            <p>
+              CCCD số: <strong>{data.primaryTenant?.idNumber || "………………………………."}</strong> cấp ngày
+              ……./ ……. / …………..tại ………………………………………………………………
             </p>
-            <p className="sm:col-span-2">
-              <strong>Nơi làm việc / Học tập:</strong>{" "}
-              {data.primaryTenant?.workplace ||
-                "...................................................................................................."}
+            <p>
+              Số điện thoại:{" "}
+              <strong>
+                {data.primaryTenant?.phone || "……………………………………………………………………………………………………………………"}
+              </strong>
             </p>
           </div>
         </div>
 
-        {/* Các điều khoản */}
-        <div className="space-y-3 mb-6">
-          <h2 className="font-bold text-sm uppercase text-primary border-b border-border/40 pb-1">
-            NỘI DUNG VÀ ĐIỀU KHOẢN HỢP ĐỒNG
-          </h2>
+        {/* Thỏa thuận */}
+        <div className="space-y-3 mb-4 text-xs sm:text-sm">
+          <p className="italic">
+            Sau khi bàn bạc trên tinh thần dân chủ, hai bên cùng có lợi, cùng thống nhất như sau:
+          </p>
 
-          <div className="space-y-2 text-xs sm:text-sm pl-2">
-            <p>
-              <strong>Điều 1. Đối tượng thuê:</strong> Bên A đồng ý cho Bên B thuê phòng{" "}
-              <strong>{data.roomName}</strong>
-              {data.bedName ? ` (${data.bedName})` : ""} tại địa chỉ nêu trên.
-            </p>
+          <p>
+            Bên A đồng ý cho bên B thuê 01 phòng ở tại địa chỉ:{" "}
+            <strong>
+              Phòng {data.roomName}
+              {data.bedName ? ` (${data.bedName})` : ""} -{" "}
+              {data.propertyAddress || data.propertyName}
+            </strong>
+          </p>
 
-            <p>
-              <strong>Điều 2. Thời hạn thuê:</strong> Từ ngày{" "}
-              <strong>{formatDate(data.startDate)}</strong>
-              {data.endDate
-                ? ` đến ngày ${formatDate(data.endDate)}`
-                : " (Hợp đồng không thời hạn đến khi 2 bên thanh lý)"}
-              .
-            </p>
+          <p>
+            Giá thuê: <strong>{formatMoney(data.rentPrice)}</strong> đ/tháng
+          </p>
 
-            <p>
-              <strong>Điều 3. Giá thuê và Phương thức thanh toán:</strong>
-              <br />- Giá thuê phòng: <strong>{formatMoney(data.rentPrice)}</strong> / tháng.
-              <br />- Chu kỳ đóng tiền: <strong>{data.billingCycle} tháng / lần</strong> (vào ngày
-              01–05 đầu mỗi kỳ).
-              <br />- Tiền đặt cọc bảo đảm: <strong>{formatMoney(data.deposit)}</strong> (hoàn trả
-              khi thanh lý hợp đồng và bàn giao hiện trạng phòng nguyên vẹn).
-            </p>
+          <p>
+            Hình thức thanh toán:{" "}
+            <strong>
+              Thanh toán theo chu kỳ {data.billingCycle} tháng / lần (Chuyển khoản hoặc tiền mặt)
+            </strong>
+          </p>
 
-            <p>
-              <strong>Điều 4. Giá dịch vụ điện, nước & Phí khác:</strong>
-              <br />- Tiền điện:{" "}
-              {data.electricPrice
-                ? `${formatMoney(data.electricPrice)} / kWh`
-                : "Theo biểu giá nhà trọ"}
-              .
-              <br />- Tiền nước:{" "}
+          <p>
+            Tiền điện:{" "}
+            <strong>
+              {data.electricPrice ? `${formatMoney(data.electricPrice)}` : "Theo biểu giá"}
+            </strong>{" "}
+            đ/kwh tính theo chỉ số công tơ, thanh toán vào cuối các tháng.
+          </p>
+
+          <p>
+            Tiền nước:{" "}
+            <strong>
               {data.waterPrice
-                ? `${formatMoney(data.waterPrice)} / m³ hoặc theo đầu người`
-                : "Theo biểu giá nhà trọ"}
-              .
-              <br />- Các loại phí dịch vụ (rác, wifi, gửi xe...) được kê chi tiết trên phiếu thu
-              hàng tháng.
-            </p>
+                ? `${formatMoney(data.waterPrice)} đ/${data.waterPricingType === "per_person" ? "người" : "khối"}`
+                : "Theo biểu giá"}
+            </strong>{" "}
+            thanh toán vào đầu các tháng.
+          </p>
 
+          <p>
+            Tiền đặt cọc: <strong>{formatMoney(data.deposit)}</strong> đ
+          </p>
+
+          <p>
+            Hợp đồng có giá trị kể từ ngày <strong>{start.day}</strong> tháng{" "}
+            <strong>{start.month}</strong> năm <strong>{start.year}</strong> đến ngày{" "}
+            <strong>{end.day}</strong> tháng <strong>{end.month}</strong> năm{" "}
+            <strong>{end.year}</strong>.
+          </p>
+        </div>
+
+        {/* Trách nhiệm của các bên */}
+        <div className="space-y-3 mb-4 text-xs sm:text-sm">
+          <p className="font-bold uppercase tracking-wide">TRÁCH NHIỆM CỦA CÁC BÊN</p>
+
+          <div className="space-y-1 pl-2">
+            <p className="font-bold">* Trách nhiệm của bên A:</p>
+            <p>– Tạo mọi điều kiện thuận lợi để bên B thực hiện theo hợp đồng.</p>
+            <p>– Cung cấp nguồn điện, nước, wifi cho bên B sử dụng.</p>
+          </div>
+
+          <div className="space-y-1 pl-2">
+            <p className="font-bold">* Trách nhiệm của bên B:</p>
+            <p>– Thanh toán đầy đủ các khoản tiền theo đúng thỏa thuận.</p>
             <p>
-              <strong>Điều 5. Quyền và nghĩa vụ hai bên:</strong>
-              <br />- Bên B có trách nhiệm bảo quản trang thiết bị, tài sản trong phòng, giữ gìn vệ
-              sinh chung, đăng ký tạm trú đúng quy định pháp luật và không tổ chức hoạt động trái
-              pháp luật.
-              <br />- Trường hợp chấm dứt hợp đồng trước hạn, Bên B phải thông báo trước ít nhất
-              15–30 ngày.
+              – Bảo quản các trang thiết bị và cơ sở vật chất của bên A trang bị cho ban đầu (làm
+              hỏng phải sửa, mất phải đền).
             </p>
+            <p>
+              – Không được tự ý sửa chữa, cải tạo cơ sở vật chất khi chưa được sự đồng ý của bên A.
+            </p>
+            <p>– Giữ gìn vệ sinh trong và ngoài khuôn viên của phòng trọ.</p>
+            <p>
+              – Bên B phải chấp hành mọi quy định của pháp luật Nhà nước và quy định của địa phương.
+            </p>
+            <p>
+              – Nếu bên B cho khách ở qua đêm thì phải báo và được sự đồng ý của chủ nhà đồng thời
+              phải chịu trách nhiệm về các hành vi vi phạm pháp luật của khách trong thời gian ở
+              lại.
+            </p>
+          </div>
+        </div>
 
-            {data.terms ? (
-              <p>
-                <strong>Điều 6. Thỏa thuận bổ sung:</strong>
-                <br />
-                {data.terms}
-              </p>
-            ) : null}
+        {/* Trách nhiệm chung */}
+        <div className="space-y-2 mb-6 text-xs sm:text-sm">
+          <p className="font-bold uppercase tracking-wide">TRÁCH NHIỆM CHUNG</p>
+          <div className="space-y-1 pl-2">
+            <p>– Hai bên phải tạo điều kiện cho nhau thực hiện hợp đồng.</p>
+            <p>
+              – Trong thời gian hợp đồng còn hiệu lực nếu bên nào vi phạm các điều khoản đã thỏa
+              thuận thì bên còn lại có quyền đơn phương chấm dứt hợp đồng; nếu sự vi phạm hợp đồng
+              đó gây tổn thất cho bên bị vi phạm hợp đồng thì bên vi phạm hợp đồng phải bồi thường
+              thiệt hại.
+            </p>
+            <p>
+              – Một trong hai bên muốn chấm dứt hợp đồng trước thời hạn thì phải báo trước cho bên
+              kia ít nhất 30 ngày và hai bên phải có sự thống nhất.
+            </p>
+            <p>– Bên A phải trả lại tiền đặt cọc cho bên B.</p>
+            <p>– Bên nào vi phạm điều khoản chung thì phải chịu trách nhiệm trước pháp luật.</p>
+            <p>
+              – Hợp đồng được lập thành 02 bản có giá trị pháp lý như nhau, mỗi bên giữ một bản.
+            </p>
           </div>
         </div>
 
@@ -203,7 +263,9 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
           <div className="space-y-16">
             <div>
               <p className="font-bold uppercase">ĐẠI DIỆN BÊN A</p>
-              <p className="text-xs text-muted-foreground italic">(Ký, ghi rõ họ tên)</p>
+              <p className="text-xs text-muted-foreground print:text-gray-600 italic">
+                (Ký, ghi rõ họ tên)
+              </p>
             </div>
             <p className="font-semibold">{data.propertyName}</p>
           </div>
@@ -211,7 +273,9 @@ export function ContractSheet({ data }: { data: ContractAgreementData }) {
           <div className="space-y-16">
             <div>
               <p className="font-bold uppercase">ĐẠI DIỆN BÊN B</p>
-              <p className="text-xs text-muted-foreground italic">(Ký, ghi rõ họ tên)</p>
+              <p className="text-xs text-muted-foreground print:text-gray-600 italic">
+                (Ký, ghi rõ họ tên)
+              </p>
             </div>
             <p className="font-semibold">{data.primaryTenant?.fullName || "Bên thuê phòng"}</p>
           </div>

@@ -48,6 +48,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
           propertyAddress: detail.property?.address || null,
           electricPrice: detail.property?.electricPrice,
           waterPrice: detail.property?.waterPrice,
+          waterPricingType: detail.property?.waterPricingType as "meter" | "per_person",
+          waterPricePerPerson: detail.property?.waterPricePerPerson,
           roomName: detail.room?.name || "",
           bedName: detail.bed?.name || null,
           primaryTenant: primary
