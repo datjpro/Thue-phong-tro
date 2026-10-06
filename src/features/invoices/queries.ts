@@ -28,8 +28,12 @@ export type InvoiceListItem = {
   roomFee: number;
   electricAmount: number;
   electricUsage: number;
+  electricPrev: number | null;
+  electricCurr: number | null;
   waterAmount: number;
   waterUsage: number;
+  waterPrev: number | null;
+  waterCurr: number | null;
   otherFee: number;
   otherFeeNote: string | null;
   tenantName: string | null;
@@ -54,13 +58,25 @@ export async function listInvoices(propertyId: string): Promise<InvoiceListItem[
       roomFee: invoices.roomFee,
       electricAmount: invoices.electricAmount,
       electricUsage: invoices.electricUsage,
+      electricPrev: meterReadings.electricPrev,
+      electricCurr: meterReadings.electricCurr,
       waterAmount: invoices.waterAmount,
       waterUsage: invoices.waterUsage,
+      waterPrev: meterReadings.waterPrev,
+      waterCurr: meterReadings.waterCurr,
       otherFee: invoices.otherFee,
       otherFeeNote: invoices.otherFeeNote,
     })
     .from(invoices)
     .innerJoin(rooms, eq(rooms.id, invoices.roomId))
+    .leftJoin(
+      meterReadings,
+      and(
+        eq(meterReadings.propertyId, propertyId),
+        eq(meterReadings.roomId, invoices.roomId),
+        eq(meterReadings.period, invoices.period),
+      ),
+    )
     .where(and(eq(invoices.propertyId, propertyId), isNull(invoices.deletedAt)))
     .orderBy(desc(invoices.period), desc(invoices.createdAt), rooms.name);
 
@@ -112,36 +128,50 @@ export async function getInvoiceDetail(propertyId: string, invoiceId: string) {
     .limit(1);
   if (!row) return null;
 
-  const [tenant] = await db
-    .select({ fullName: tenants.fullName, phone: tenants.phone })
-    .from(contractTenants)
-    .innerJoin(tenants, eq(tenants.id, contractTenants.tenantId))
-    .where(
-      and(
-        eq(contractTenants.propertyId, propertyId),
-        eq(contractTenants.contractId, row.invoice.contractId),
-        eq(contractTenants.isPrimary, "yes"),
-      ),
-    )
-    .limit(1);
-
-  const paymentRows = await db
-    .select()
-    .from(payments)
-    .where(
-      and(
-        eq(payments.propertyId, propertyId),
-        eq(payments.invoiceId, invoiceId),
-        isNull(payments.deletedAt),
-      ),
-    )
-    .orderBy(desc(payments.paidAt));
+  const [tenant, paymentRows, [reading]] = await Promise.all([
+    db
+      .select({ fullName: tenants.fullName, phone: tenants.phone })
+      .from(contractTenants)
+      .innerJoin(tenants, eq(tenants.id, contractTenants.tenantId))
+      .where(
+        and(
+          eq(contractTenants.propertyId, propertyId),
+          eq(contractTenants.contractId, row.invoice.contractId),
+          eq(contractTenants.isPrimary, "yes"),
+        ),
+      )
+      .limit(1)
+      .then((res) => res[0] ?? null),
+    db
+      .select()
+      .from(payments)
+      .where(
+        and(
+          eq(payments.propertyId, propertyId),
+          eq(payments.invoiceId, invoiceId),
+          isNull(payments.deletedAt),
+        ),
+      )
+      .orderBy(desc(payments.paidAt)),
+    db
+      .select()
+      .from(meterReadings)
+      .where(
+        and(
+          eq(meterReadings.propertyId, propertyId),
+          eq(meterReadings.roomId, row.invoice.roomId),
+          eq(meterReadings.period, row.invoice.period),
+        ),
+      )
+      .limit(1),
+  ]);
 
   return {
     ...row,
     tenantName: tenant?.fullName ?? null,
     tenantPhone: tenant?.phone ?? null,
     payments: paymentRows,
+    reading: reading ?? null,
   };
 }
 

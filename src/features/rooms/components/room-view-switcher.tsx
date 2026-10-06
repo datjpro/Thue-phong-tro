@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bed, ChevronRight, DoorClosed, Gauge, Grid, Layers, List, User } from "lucide-react";
+import {
+  Bed,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  DoorClosed,
+  Grid,
+  Layers,
+  List,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { invoiceDisplayStatus } from "@/lib/invoice-status";
 import { formatMoney } from "@/lib/money";
@@ -26,6 +36,7 @@ export type RoomRow = {
   daysUntilExpire?: number | null;
   beds?: Array<{ id: string; name: string; rentPrice: number; status: string }>;
   occupiedBedsCount?: number;
+  hasReading?: boolean;
   invoice: { total: number; status: "unpaid" | "partial" | "paid"; dueDate: string } | null;
 };
 
@@ -164,8 +175,6 @@ export function RoomViewSwitcher({ rows, today, defaultView = "grid" }: Props) {
                     statusLabel = "Đang thuê";
                   }
 
-                  const needsReading = r.hasActiveContract && !r.invoice;
-
                   return (
                     <Link
                       key={r.id}
@@ -264,11 +273,18 @@ export function RoomViewSwitcher({ rows, today, defaultView = "grid" }: Props) {
                               {formatMoney(r.invoice.total)}
                             </span>
                           </div>
-                        ) : needsReading ? (
-                          <span className="inline-flex items-center gap-1 text-warning font-semibold text-[11px]">
-                            <Gauge size={12} />
-                            Chưa nhập điện nước
-                          </span>
+                        ) : r.hasActiveContract ? (
+                          r.hasReading ? (
+                            <span className="inline-flex items-center gap-1 text-primary font-medium text-[11px]">
+                              <CheckCircle2 size={12} />
+                              Đã chốt số · Chờ lập HĐ
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-muted-foreground font-medium text-[11px]">
+                              <Clock size={12} />
+                              Chưa lập HĐ kỳ này
+                            </span>
+                          )
                         ) : (
                           <span className="text-muted-foreground text-[11px]">Trống kỳ này</span>
                         )}
@@ -288,7 +304,6 @@ export function RoomViewSwitcher({ rows, today, defaultView = "grid" }: Props) {
         /* Row / Table View */
         <div className="divide-y divide-border/60 rounded-xl border border-border/60 bg-card shadow-2xs overflow-hidden">
           {rows.map((r) => {
-            const needsReading = r.hasActiveContract && !r.invoice;
             const invStatus = r.invoice
               ? invoiceDisplayStatus(r.invoice.status, r.invoice.dueDate, today)
               : null;
@@ -341,11 +356,18 @@ export function RoomViewSwitcher({ rows, today, defaultView = "grid" }: Props) {
                         {formatMoney(r.invoice.total)}
                       </span>
                     </div>
-                  ) : needsReading ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-2.5 py-0.5 text-xs font-semibold text-warning">
-                      <Gauge size={12} />
-                      {t("rooms.needReadings")}
-                    </span>
+                  ) : r.hasActiveContract ? (
+                    r.hasReading ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        <CheckCircle2 size={12} />
+                        Đã chốt số
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                        <Clock size={12} />
+                        Chưa lập HĐ
+                      </span>
+                    )
                   ) : (
                     <span className="text-xs text-muted-foreground">{t("status.vacant")}</span>
                   )}

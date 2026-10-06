@@ -29,7 +29,17 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
 
   const detail = await getRoomDetail(propertyId, id, period);
   if (!detail) notFound();
-  const { room, property, contract, tenants, lastReading, monthInvoice, beds, assets } = detail;
+  const {
+    room,
+    property,
+    contract,
+    tenants,
+    lastReading,
+    monthInvoice,
+    monthReading,
+    beds,
+    assets,
+  } = detail;
 
   const history = (await listInvoices(propertyId)).filter(
     (i) => i.roomId === id && i.period !== period,
@@ -118,7 +128,15 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
         {monthInvoice ? (
           <InvoiceSheet
             today={today}
-            data={{ ...monthInvoice, roomName: room.name, tenantName: primaryTenant }}
+            data={{
+              ...monthInvoice,
+              roomName: room.name,
+              tenantName: primaryTenant,
+              electricPrev: monthReading?.electricPrev,
+              electricCurr: monthReading?.electricCurr,
+              waterPrev: monthReading?.waterPrev,
+              waterCurr: monthReading?.waterCurr,
+            }}
           />
         ) : contract && property ? (
           <div className="rounded-[4px] border border-dashed border-border bg-card/50 p-6 text-center">

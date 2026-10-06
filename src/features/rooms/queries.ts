@@ -25,7 +25,7 @@ export async function listRooms(propertyId: string, period: string) {
   const roomIds = roomRows.map((r) => r.id);
   const today = todayVn();
 
-  const [activeContracts, monthInvoices, beds] = await Promise.all([
+  const [activeContracts, monthInvoices, beds, monthReadings] = await Promise.all([
     db
       .select({
         roomId: contracts.roomId,
@@ -71,6 +71,18 @@ export async function listRooms(propertyId: string, period: string) {
       .from(roomBeds)
       .where(and(eq(roomBeds.propertyId, propertyId), inArray(roomBeds.roomId, roomIds)))
       .orderBy(roomBeds.name),
+    db
+      .select({
+        roomId: meterReadings.roomId,
+      })
+      .from(meterReadings)
+      .where(
+        and(
+          eq(meterReadings.propertyId, propertyId),
+          eq(meterReadings.period, period),
+          inArray(meterReadings.roomId, roomIds),
+        ),
+      ),
   ]);
 
   return roomRows.map((room) => {
@@ -107,6 +119,7 @@ export async function listRooms(propertyId: string, period: string) {
       daysUntilExpire,
       beds: roomBedsList,
       occupiedBedsCount,
+      hasReading: monthReadings.some((mr) => mr.roomId === room.id),
       invoice: monthInvoices.find((i) => i.roomId === room.id) ?? null,
     };
   });
@@ -139,61 +152,74 @@ export async function getRoomDetail(propertyId: string, roomId: string, period: 
     )
     .limit(1);
 
-  const [contractTenantRows, lastReading, monthInvoice, bedsList, assetsList] = await Promise.all([
-    contract
-      ? db
-          .select({
-            id: tenants.id,
-            fullName: tenants.fullName,
-            phone: tenants.phone,
-            idNumber: tenants.idNumber,
-            birthDate: tenants.birthDate,
-            gender: tenants.gender,
-            hometown: tenants.hometown,
-            workplace: tenants.workplace,
-            licensePlate: tenants.licensePlate,
-            userId: tenants.userId,
-          })
-          .from(contractTenants)
-          .innerJoin(tenants, eq(tenants.id, contractTenants.tenantId))
-          .where(
-            and(
-              eq(contractTenants.propertyId, propertyId),
-              eq(contractTenants.contractId, contract.id),
-            ),
-          )
-      : [],
-    db
-      .select()
-      .from(meterReadings)
-      .where(and(eq(meterReadings.propertyId, propertyId), eq(meterReadings.roomId, roomId)))
-      .orderBy(desc(meterReadings.period))
-      .limit(1)
-      .then((res) => res[0] ?? null),
-    db
-      .select()
-      .from(invoices)
-      .where(
-        and(
-          eq(invoices.propertyId, propertyId),
-          eq(invoices.roomId, roomId),
-          eq(invoices.period, period),
-          isNull(invoices.deletedAt),
-        ),
-      )
-      .limit(1)
-      .then((res) => res[0] ?? null),
-    db
-      .select()
-      .from(roomBeds)
-      .where(and(eq(roomBeds.propertyId, propertyId), eq(roomBeds.roomId, roomId)))
-      .orderBy(roomBeds.name),
-    db
-      .select()
-      .from(roomAssets)
-      .where(and(eq(roomAssets.propertyId, propertyId), eq(roomAssets.roomId, roomId)))
-      .orderBy(roomAssets.category, roomAssets.name),
-  ]);
+  const [contractTenantRows, lastReading, monthInvoice, bedsList, assetsList, monthReading] =
+    await Promise.all([
+      contract
+        ? db
+            .select({
+              id: tenants.id,
+              fullName: tenants.fullName,
+              phone: tenants.phone,
+              idNumber: tenants.idNumber,
+              birthDate: tenants.birthDate,
+              gender: tenants.gender,
+              hometown: tenants.hometown,
+              workplace: tenants.workplace,
+              licensePlate: tenants.licensePlate,
+              userId: tenants.userId,
+            })
+            .from(contractTenants)
+            .innerJoin(tenants, eq(tenants.id, contractTenants.tenantId))
+            .where(
+              and(
+                eq(contractTenants.propertyId, propertyId),
+                eq(contractTenants.contractId, contract.id),
+              ),
+            )
+        : [],
+      db
+        .select()
+        .from(meterReadings)
+        .where(and(eq(meterReadings.propertyId, propertyId), eq(meterReadings.roomId, roomId)))
+        .orderBy(desc(meterReadings.period))
+        .limit(1)
+        .then((res) => res[0] ?? null),
+      db
+        .select()
+        .from(invoices)
+        .where(
+          and(
+            eq(invoices.propertyId, propertyId),
+            eq(invoices.roomId, roomId),
+            eq(invoices.period, period),
+            isNull(invoices.deletedAt),
+          ),
+        )
+        .limit(1)
+        .then((res) => res[0] ?? null),
+      db
+        .select()
+        .from(roomBeds)
+        .where(and(eq(roomBeds.propertyId, propertyId), eq(roomBeds.roomId, roomId)))
+        .orderBy(roomBeds.name),
+      db
+        .select()
+        .from(roomAssets)
+        .where(and(eq(roomAssets.propertyId, propertyId), eq(roomAssets.roomId, roomId)))
+        .orderBy(roomAssets.category, roomAssets.name),
+      db
+        .select()
+        .from(meterReadings)
+        .where(
+          and(
+            eq(meterReadings.propertyId, propertyId),
+            eq(meterReadings.roomId, roomId),
+            eq(meterReadings.period, period),
+          ),
+        )
+        .limit(1)
+        .then((res) => res[0] ?? null),
+    ]);
 
   return {
     room,
@@ -202,6 +228,7 @@ export async function getRoomDetail(propertyId: string, roomId: string, period: 
     tenants: contractTenantRows,
     lastReading,
     monthInvoice,
+    monthReading,
     beds: bedsList,
     assets: assetsList,
   };
