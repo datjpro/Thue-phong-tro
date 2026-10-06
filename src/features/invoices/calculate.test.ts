@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateInvoice, paymentStatus } from "./calculate";
+import { calculateInvoice, calculateTieredUsage, paymentStatus } from "./calculate";
 
 const base = {
   period: "2026-10",
@@ -47,6 +47,53 @@ describe("calculateInvoice", () => {
     expect(calculateInvoice({ ...base, otherFee: 50_000 }).total).toBe(3_447_500);
   });
 
+  it("tính tiền nước theo đầu người", () => {
+    const r = calculateInvoice({
+      ...base,
+      water: {
+        pricingType: "per_person",
+        personCount: 3,
+        pricePerPerson: 80_000,
+      },
+    });
+    expect(r.waterAmount).toBe(240_000);
+  });
+
+  it("tính tiền điện theo bậc thang lũy tiến", () => {
+    // 75 số: 50 số bậc 1 (2000) + 25 số bậc 2 (2500) = 100_000 + 62_500 = 162_500
+    const customTiers = [
+      { upTo: 50, unitPrice: 2000 },
+      { upTo: 100, unitPrice: 2500 },
+      { upTo: null, unitPrice: 3000 },
+    ];
+    const r = calculateInvoice({
+      ...base,
+      electric: {
+        prev: 100,
+        curr: 175,
+        unitPrice: 0,
+        pricingType: "tiered",
+        tiers: customTiers,
+      },
+    });
+    expect(r.electricUsage).toBe(75);
+    expect(r.electricAmount).toBe(162_500);
+  });
+
+  it("cộng dồn dịch vụ đi kèm vào tổng", () => {
+    const r = calculateInvoice({
+      ...base,
+      serviceItems: [
+        { name: "Phí rác", amount: 30_000 },
+        { name: "Giữ xe máy (2 xe)", amount: 200_000 },
+        { name: "Wifi", amount: 50_000 },
+      ],
+    });
+    expect(r.serviceAmount).toBe(280_000);
+    expect(r.otherFee).toBe(280_000);
+    expect(r.total).toBe(3_000_000 + 297_500 + 100_000 + 280_000);
+  });
+
   it("từ chối chỉ số mới nhỏ hơn cũ", () => {
     expect(() =>
       calculateInvoice({ ...base, electric: { prev: 200, curr: 100, unitPrice: 3500 } }),
@@ -56,6 +103,18 @@ describe("calculateInvoice", () => {
   it("không dùng điện nước vẫn hợp lệ", () => {
     const r = calculateInvoice({ ...base, electric: { prev: 5, curr: 5, unitPrice: 3500 } });
     expect(r.electricAmount).toBe(0);
+  });
+});
+
+describe("calculateTieredUsage helper", () => {
+  it("tính chính xác khi qua nhiều bậc", () => {
+    const tiers = [
+      { upTo: 50, unitPrice: 1000 },
+      { upTo: 100, unitPrice: 2000 },
+      { upTo: null, unitPrice: 3000 },
+    ];
+    // 120 số: 50*1000 + 50*2000 + 20*3000 = 50k + 100k + 60k = 210k
+    expect(calculateTieredUsage(120, tiers)).toBe(210_000);
   });
 });
 

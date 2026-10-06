@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Zap } from "lucide-react";
+import { Camera, Check, Plus, Trash2, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -11,7 +11,7 @@ import { NumberInput } from "@/components/shared/number-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
-import { formatMoney, formatNumber } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { useSubmit } from "@/lib/use-submit";
 import { saveReadingAndCreateInvoice } from "../actions";
 import { calculateInvoice } from "../calculate";
@@ -30,14 +30,19 @@ type Props = {
   contractEnd: string | null;
 };
 
-// Ngưỡng cảnh báo mềm, chỉ để nhắc kiểm tra lại, không chặn lưu.
-const ELECTRIC_HIGH = 600;
-const WATER_HIGH = 60;
-
 export function MeterSheet(props: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [services, setServices] = useState<
+    Array<{ id: string; name: string; amount: number; quantity: number }>
+  >([
+    { id: "srv-trash", name: "Phí rác", amount: 30000, quantity: 1 },
+    { id: "srv-wifi", name: "Wi-Fi / Internet", amount: 50000, quantity: 1 },
+  ]);
+  const [electricPhoto, setElectricPhoto] = useState<string | null>(null);
+  const [waterPhoto, setWaterPhoto] = useState<string | null>(null);
+
   const draftKey = `meter-draft:${props.roomId}:${props.period}`;
 
   const form = useForm<ReadingInput>({
@@ -51,12 +56,13 @@ export function MeterSheet(props: Props) {
       waterReplaced: false,
       electricPrev: props.prevElectric,
       waterPrev: props.prevWater,
+      electricPhoto: null,
+      waterPhoto: null,
       otherFee: 0,
       otherFeeNote: "",
     },
   });
 
-  // Khôi phục nháp cục bộ khi mở lại (mất mạng / lỡ đóng sheet).
   useEffect(() => {
     if (!open) return;
     try {
@@ -87,6 +93,8 @@ export function MeterSheet(props: Props) {
   const wUsage = v.waterCurr - wPrev;
   const invalidReading = eUsage < 0 || wUsage < 0;
 
+  const totalServices = services.reduce((acc, s) => acc + s.amount * s.quantity, 0);
+
   const preview = useMemo(() => {
     if (invalidReading) return null;
     return calculateInvoice({
@@ -96,194 +104,315 @@ export function MeterSheet(props: Props) {
       contractEnd: props.contractEnd,
       electric: { prev: ePrev, curr: v.electricCurr, unitPrice: props.electricPrice },
       water: { prev: wPrev, curr: v.waterCurr, unitPrice: props.waterPrice },
-      otherFee: v.otherFee,
+      otherFee: (v.otherFee ?? 0) + totalServices,
     });
-  }, [invalidReading, props, ePrev, wPrev, v.electricCurr, v.waterCurr, v.otherFee]);
+  }, [
+    invalidReading,
+    props.period,
+    props.monthlyRent,
+    props.contractStart,
+    props.contractEnd,
+    ePrev,
+    v.electricCurr,
+    props.electricPrice,
+    wPrev,
+    v.waterCurr,
+    props.waterPrice,
+    v.otherFee,
+    totalServices,
+  ]);
 
   const { submit, pending, error } = useSubmit(
-    (input: ReadingInput) => saveReadingAndCreateInvoice(props.propertyId, input),
+    async (values: ReadingInput) => {
+      return saveReadingAndCreateInvoice(props.propertyId, {
+        ...values,
+        electricPhoto,
+        waterPhoto,
+        otherFee: (values.otherFee ?? 0) + totalServices,
+        serviceItems: services.map((s) => ({
+          name: s.name,
+          amount: s.amount * s.quantity,
+          quantity: s.quantity,
+        })),
+      });
+    },
     {
       successKey: "invoices.readingSaved",
-      onSuccess: (d) => {
-        localStorage.removeItem(draftKey);
+      onSuccess: (data) => {
+        try {
+          localStorage.removeItem(draftKey);
+        } catch (_) {}
         setOpen(false);
-        router.push(`/invoices/${d.invoiceId}`);
+        router.push(`/invoices/${data.invoiceId}`);
       },
     },
   );
 
+  function handlePhotoUpload(type: "electric" | "water", file?: File) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        if (type === "electric") setElectricPhoto(reader.result);
+        else setWaterPhoto(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addService() {
+    setServices([
+      ...services,
+      {
+        id: `srv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: "Giữ xe máy",
+        amount: 100000,
+        quantity: 1,
+      },
+    ]);
+  }
+
+  function removeService(id: string) {
+    setServices(services.filter((s) => s.id !== id));
+  }
+
   return (
     <>
-      <Button onClick={() => setOpen(true)} className="w-full sm:w-auto" variant="primary">
-        <Zap size={18} aria-hidden="true" />
+      <Button
+        type="button"
+        variant="primary"
+        size="lg"
+        className="w-full text-base font-semibold shadow-xs"
+        onClick={() => setOpen(true)}
+      >
+        <Zap size={18} className="mr-2" />
         <span>{t("invoices.enterReadings")}</span>
       </Button>
+
       <Sheet
         open={open}
         onOpenChange={setOpen}
         title={t("invoices.enterReadings")}
-        description={t("invoices.readingFor", {
-          period: props.period.split("-").reverse().join("/"),
-        })}
+        description={t("invoices.readingFor", { period: props.period })}
       >
-        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-5 pt-2">
-          {/* Điện */}
-          <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-4">
-            <Field id="electricPrev" label={t("invoices.electricPrev")}>
-              {(p) => (
-                <Controller
-                  control={form.control}
-                  name="electricPrev"
-                  render={({ field }) => (
-                    <NumberInput
-                      id={p.id}
-                      value={v.electricReplaced ? field.value : props.prevElectric}
-                      onChange={field.onChange}
-                      suffix={t("units.kwh")}
-                      disabled={!v.electricReplaced}
-                    />
-                  )}
+        <form onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-4 pb-4">
+          {/* Nhập điện */}
+          <div className="rounded-xl border border-border/60 bg-card p-4 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                <Zap size={15} className="text-amber-500" />
+                <span>Chỉ số Điện (kWh)</span>
+              </span>
+              <label className="cursor-pointer text-xs text-primary font-medium flex items-center gap-1 hover:underline">
+                <Camera size={13} />
+                <span>{electricPhoto ? "Đổi ảnh" : "Chụp ảnh công tơ"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => handlePhotoUpload("electric", e.target.files?.[0])}
+                  className="hidden"
                 />
-              )}
-            </Field>
-            <label className="flex min-h-10 items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
-              <input
-                type="checkbox"
-                className="size-4 rounded border-border accent-primary"
-                {...form.register("electricReplaced")}
-              />
-              {t("invoices.replaced")}
-            </label>
-            <Field id="electricCurr" label={t("invoices.electricCurr")}>
-              {(p) => (
-                <Controller
-                  control={form.control}
-                  name="electricCurr"
-                  render={({ field }) => (
-                    <NumberInput
-                      id={p.id}
-                      value={field.value}
-                      onChange={field.onChange}
-                      suffix={t("units.kwh")}
-                      invalid={eUsage < 0}
-                      autoFocus
-                    />
-                  )}
-                />
-              )}
-            </Field>
-            <p aria-live="polite" className="text-xs text-muted-foreground font-mono">
-              {eUsage >= 0
-                ? t("invoices.calcLine", {
-                    usage: formatNumber(eUsage),
-                    unit: t("units.kwh"),
-                    price: formatMoney(props.electricPrice),
-                    amount: formatMoney(eUsage * props.electricPrice),
-                  })
-                : null}
-            </p>
-            {eUsage > ELECTRIC_HIGH ? (
-              <p className="text-xs text-warning">{t("invoices.unusualHigh")}</p>
-            ) : null}
-          </div>
+              </label>
+            </div>
 
-          {/* Nước */}
-          <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card p-4">
-            <Field id="waterPrev" label={t("invoices.waterPrev")}>
-              {(p) => (
-                <Controller
-                  control={form.control}
-                  name="waterPrev"
-                  render={({ field }) => (
-                    <NumberInput
-                      id={p.id}
-                      value={v.waterReplaced ? field.value : props.prevWater}
-                      onChange={field.onChange}
-                      suffix={t("units.m3")}
-                      disabled={!v.waterReplaced}
-                    />
-                  )}
-                />
-              )}
-            </Field>
-            <label className="flex min-h-10 items-center gap-2.5 text-xs text-muted-foreground select-none cursor-pointer">
-              <input
-                type="checkbox"
-                className="size-4 rounded border-border accent-primary"
-                {...form.register("waterReplaced")}
-              />
-              {t("invoices.replaced")}
-            </label>
-            <Field id="waterCurr" label={t("invoices.waterCurr")}>
-              {(p) => (
-                <Controller
-                  control={form.control}
-                  name="waterCurr"
-                  render={({ field }) => (
-                    <NumberInput
-                      id={p.id}
-                      value={field.value}
-                      onChange={field.onChange}
-                      suffix={t("units.m3")}
-                      invalid={wUsage < 0}
-                    />
-                  )}
-                />
-              )}
-            </Field>
-            <p aria-live="polite" className="text-xs text-muted-foreground font-mono">
-              {wUsage >= 0
-                ? t("invoices.calcLine", {
-                    usage: formatNumber(wUsage),
-                    unit: t("units.m3"),
-                    price: formatMoney(props.waterPrice),
-                    amount: formatMoney(wUsage * props.waterPrice),
-                  })
-                : null}
-            </p>
-            {wUsage > WATER_HIGH ? (
-              <p className="text-xs text-warning">{t("invoices.unusualHigh")}</p>
-            ) : null}
-          </div>
-
-          {invalidReading ? (
-            <p role="alert" className="text-xs font-medium text-warning">
-              {t("invoices.lowerWarning")}
-            </p>
-          ) : null}
-
-          {/* Phí khác */}
-          <div className="space-y-3">
-            <Field id="otherFee" label={t("invoices.otherFee")}>
-              {(p) => (
-                <Controller
-                  control={form.control}
-                  name="otherFee"
-                  render={({ field }) => (
-                    <NumberInput
-                      id={p.id}
-                      value={field.value}
-                      onChange={field.onChange}
-                      suffix="₫"
-                    />
-                  )}
-                />
-              )}
-            </Field>
-            {v.otherFee > 0 ? (
-              <Field id="otherFeeNote" label={t("invoices.otherFeeNote")}>
-                {(p) => <Input id={p.id} {...form.register("otherFeeNote")} />}
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="electricPrev" label={t("invoices.electricPrev")}>
+                {(p) => (
+                  <Controller
+                    control={form.control}
+                    name="electricPrev"
+                    render={({ field }) => (
+                      <NumberInput
+                        id={p.id}
+                        value={ePrev}
+                        onChange={field.onChange}
+                        disabled={!v.electricReplaced}
+                        suffix={t("units.kwh")}
+                      />
+                    )}
+                  />
+                )}
               </Field>
+
+              <Field id="electricCurr" label={t("invoices.electricCurr")}>
+                {(p) => (
+                  <Controller
+                    control={form.control}
+                    name="electricCurr"
+                    render={({ field }) => (
+                      <NumberInput
+                        id={p.id}
+                        value={field.value}
+                        onChange={field.onChange}
+                        suffix={t("units.kwh")}
+                        autoFocus
+                      />
+                    )}
+                  />
+                )}
+              </Field>
+            </div>
+
+            {electricPhoto ? (
+              <div className="flex items-center gap-2 rounded bg-muted/40 p-1.5 text-xs text-muted-foreground">
+                <Check size={14} className="text-emerald-600 font-bold" />
+                <span>Đã lưu ảnh công tơ điện làm bằng chứng</span>
+              </div>
             ) : null}
           </div>
 
-          {/* Tổng tạm tính */}
-          <div className="rounded-xl border border-border/80 bg-muted/30 p-4">
-            <p className="text-xs text-muted-foreground">{t("invoices.estimatedTotal")}</p>
-            <p className="text-right text-2xl sm:text-3xl font-bold font-mono text-primary tabular-nums">
-              {preview ? formatMoney(preview.total) : "—"}
-            </p>
+          {/* Nhập nước */}
+          <div className="rounded-xl border border-border/60 bg-card p-4 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                <span className="text-blue-500 font-bold">💧</span>
+                <span>Chỉ số Nước (m³)</span>
+              </span>
+              <label className="cursor-pointer text-xs text-primary font-medium flex items-center gap-1 hover:underline">
+                <Camera size={13} />
+                <span>{waterPhoto ? "Đổi ảnh" : "Chụp ảnh đồng hồ"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => handlePhotoUpload("water", e.target.files?.[0])}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="waterPrev" label={t("invoices.waterPrev")}>
+                {(p) => (
+                  <Controller
+                    control={form.control}
+                    name="waterPrev"
+                    render={({ field }) => (
+                      <NumberInput
+                        id={p.id}
+                        value={wPrev}
+                        onChange={field.onChange}
+                        disabled={!v.waterReplaced}
+                        suffix={t("units.m3")}
+                      />
+                    )}
+                  />
+                )}
+              </Field>
+
+              <Field id="waterCurr" label={t("invoices.waterCurr")}>
+                {(p) => (
+                  <Controller
+                    control={form.control}
+                    name="waterCurr"
+                    render={({ field }) => (
+                      <NumberInput
+                        id={p.id}
+                        value={field.value}
+                        onChange={field.onChange}
+                        suffix={t("units.m3")}
+                      />
+                    )}
+                  />
+                )}
+              </Field>
+            </div>
+
+            {waterPhoto ? (
+              <div className="flex items-center gap-2 rounded bg-muted/40 p-1.5 text-xs text-muted-foreground">
+                <Check size={14} className="text-emerald-600 font-bold" />
+                <span>Đã lưu ảnh đồng hồ nước làm bằng chứng</span>
+              </div>
+            ) : null}
           </div>
+
+          {/* Dịch vụ đi kèm */}
+          <div className="rounded-xl border border-border/60 bg-card p-4 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-sm text-foreground">Dịch vụ & Phí đi kèm</span>
+              <button
+                type="button"
+                onClick={addService}
+                className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+              >
+                <Plus size={13} />
+                <span>Thêm dịch vụ</span>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {services.map((s, idx) => (
+                <div key={s.id} className="flex items-center gap-2">
+                  <Input
+                    value={s.name}
+                    onChange={(e) => {
+                      const upd = [...services];
+                      upd[idx].name = e.target.value;
+                      setServices(upd);
+                    }}
+                    placeholder="Tên dịch vụ..."
+                    className="text-xs h-9 flex-1"
+                  />
+                  <Input
+                    type="number"
+                    value={s.amount}
+                    onChange={(e) => {
+                      const upd = [...services];
+                      upd[idx].amount = Number(e.target.value);
+                      setServices(upd);
+                    }}
+                    className="text-xs h-9 w-24 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeService(s.id)}
+                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Xem trước tính toán */}
+          {preview ? (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-muted-foreground">
+                <span>
+                  Tiền phòng ({preview.occupiedDays}/{preview.daysInMonth} ngày):
+                </span>
+                <span className="font-semibold text-foreground font-mono">
+                  {formatMoney(preview.roomFee)}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Điện ({preview.electricUsage} số):</span>
+                <span className="font-semibold text-foreground font-mono">
+                  {formatMoney(preview.electricAmount)}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Nước ({preview.waterUsage} khối):</span>
+                <span className="font-semibold text-foreground font-mono">
+                  {formatMoney(preview.waterAmount)}
+                </span>
+              </div>
+              {preview.otherFee > 0 ? (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Dịch vụ & phí khác:</span>
+                  <span className="font-semibold text-foreground font-mono">
+                    {formatMoney(preview.otherFee)}
+                  </span>
+                </div>
+              ) : null}
+              <div className="flex justify-between border-t border-primary/20 pt-2 text-sm font-bold text-primary">
+                <span>Tổng tạm tính:</span>
+                <span className="font-mono text-base">{formatMoney(preview.total)}</span>
+              </div>
+            </div>
+          ) : null}
 
           {error ? (
             <p role="alert" className="text-xs font-medium text-destructive">
@@ -293,10 +422,12 @@ export function MeterSheet(props: Props) {
 
           <Button
             type="submit"
+            variant="primary"
+            size="lg"
+            className="w-full text-base font-semibold"
             disabled={pending || invalidReading}
-            className="w-full min-h-12 text-base"
           >
-            {t("invoices.saveAndCreate")}
+            {pending ? "Đang lưu..." : t("invoices.saveAndCreate")}
           </Button>
         </form>
       </Sheet>

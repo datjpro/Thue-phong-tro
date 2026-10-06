@@ -24,14 +24,23 @@ export async function createTenant(
 
   const parsed = tenantSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
 
   const [row] = await db
     .insert(tenants)
     .values({
       propertyId,
-      fullName: parsed.data.fullName,
-      phone: parsed.data.phone || null,
-      idNumber: parsed.data.idNumber || null,
+      fullName: v.fullName,
+      phone: v.phone || null,
+      idNumber: v.idNumber || null,
+      birthDate: v.birthDate || null,
+      gender: v.gender || null,
+      hometown: v.hometown || null,
+      workplace: v.workplace || null,
+      licensePlate: v.licensePlate || null,
+      idCardFrontUrl: v.idCardFrontUrl || null,
+      idCardBackUrl: v.idCardBackUrl || null,
+      notes: v.notes || null,
     })
     .returning({ id: tenants.id });
 
@@ -41,11 +50,44 @@ export async function createTenant(
     action: "create_tenant",
     resourceType: "tenant",
     resourceId: row.id,
-    details: { fullName: parsed.data.fullName },
+    details: { fullName: v.fullName, idNumber: v.idNumber },
   });
 
   revalidatePath("/tenants");
   return success({ id: row.id });
+}
+
+export async function updateTenant(
+  propertyId: string,
+  tenantId: string,
+  input: TenantInput,
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertMember(ctx.userId, propertyId))) return fail("forbidden");
+
+  const parsed = tenantSchema.safeParse(input);
+  if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+
+  await db
+    .update(tenants)
+    .set({
+      fullName: v.fullName,
+      phone: v.phone || null,
+      idNumber: v.idNumber || null,
+      birthDate: v.birthDate || null,
+      gender: v.gender || null,
+      hometown: v.hometown || null,
+      workplace: v.workplace || null,
+      licensePlate: v.licensePlate || null,
+      idCardFrontUrl: v.idCardFrontUrl || null,
+      idCardBackUrl: v.idCardBackUrl || null,
+      notes: v.notes || null,
+    })
+    .where(and(eq(tenants.propertyId, propertyId), eq(tenants.id, tenantId)));
+
+  revalidatePath("/tenants");
+  return success(undefined);
 }
 
 export async function deleteTenant(propertyId: string, tenantId: string): Promise<ActionResult> {

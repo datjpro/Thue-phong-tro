@@ -11,11 +11,14 @@ export type AuditAction =
   | "create_contract"
   | "end_contract"
   | "create_invoice"
+  | "delete_invoice"
   | "record_payment"
   | "undo_payment"
   | "update_settings"
   | "create_maintenance"
   | "update_maintenance_status"
+  | "create_room_asset"
+  | "save_asset_handover"
   | "change_password";
 
 export interface LogAuditParams {
@@ -30,6 +33,8 @@ export interface LogAuditParams {
     | "payment"
     | "property"
     | "maintenance"
+    | "asset"
+    | "asset_handover"
     | "auth";
   resourceId?: string;
   details?: Record<string, unknown>;

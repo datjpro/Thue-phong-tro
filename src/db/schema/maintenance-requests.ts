@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { properties } from "./properties";
 import { rooms } from "./rooms";
 
@@ -12,9 +12,10 @@ export const maintenanceRequests = pgTable("maintenance_requests", {
     .references(() => rooms.id),
   title: text("title").notNull(),
   description: text("description"),
+  cost: integer("cost").notNull().default(0), // Chi phí sửa chữa/bảo trì (VND)
   status: text("status", { enum: ["open", "in_progress", "done"] })
     .notNull()
     .default("open"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  resolvedAt: timestamp("resolved_at"),
+  completedAt: timestamp("completed_at"),
 });

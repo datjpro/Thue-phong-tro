@@ -81,7 +81,7 @@ export async function updateMaintenanceStatus(
     .update(maintenanceRequests)
     .set({
       status: parsed.data.status,
-      resolvedAt: parsed.data.status === "done" ? new Date() : null,
+      completedAt: parsed.data.status === "done" ? new Date() : null,
     })
     .where(
       and(

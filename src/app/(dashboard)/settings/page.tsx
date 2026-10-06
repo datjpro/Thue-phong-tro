@@ -8,9 +8,7 @@ import { PageTransition } from "@/components/shared/page-transition";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { db } from "@/db";
 import { properties, tenants } from "@/db/schema";
-import { SecurityPanel } from "@/features/settings/components/security-panel";
 import { SettingsForm } from "@/features/settings/components/settings-form";
-import { listAuditLogs } from "@/features/settings/queries";
 import { requireContext } from "@/lib/session";
 
 export default async function SettingsPage() {
@@ -30,8 +28,6 @@ export default async function SettingsPage() {
     const [tp] = await db.select().from(tenants).where(eq(tenants.id, ctx.tenantId)).limit(1);
     tenantProfile = tp;
   }
-
-  const auditLogs = !isTenant ? await listAuditLogs(ctx.propertyId, 15) : [];
 
   return (
     <PageTransition className="space-y-8">
@@ -120,17 +116,6 @@ export default async function SettingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Security & Audit Logs Section */}
-      <section
-        aria-labelledby="security-section-title"
-        className="space-y-3 pt-4 border-t border-border/60"
-      >
-        <h2 id="security-section-title" className="text-lg font-bold text-foreground">
-          Bảo mật & An toàn dữ liệu
-        </h2>
-        <SecurityPanel propertyId={ctx.propertyId} auditLogs={auditLogs} isTenant={isTenant} />
-      </section>
     </PageTransition>
   );
 }
