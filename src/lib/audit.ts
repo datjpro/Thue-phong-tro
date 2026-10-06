@@ -6,6 +6,8 @@ import { auditLogs } from "@/db/schema";
 export type AuditAction =
   | "login"
   | "create_room"
+  | "update_room_status"
+  | "update_bed_status"
   | "create_tenant"
   | "grant_tenant_account"
   | "create_contract"

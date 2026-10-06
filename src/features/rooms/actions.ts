@@ -79,6 +79,38 @@ export async function createRoom(
   return success({ id: row.id });
 }
 
+export async function updateRoomStatus(
+  propertyId: string,
+  roomId: string,
+  status: "vacant" | "maintenance" | "occupied",
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  if (!["vacant", "maintenance", "occupied"].includes(status)) {
+    return fail("invalidInput");
+  }
+
+  await db
+    .update(rooms)
+    .set({ status })
+    .where(and(eq(rooms.propertyId, propertyId), eq(rooms.id, roomId)));
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "update_room_status",
+    resourceType: "room",
+    resourceId: roomId,
+    details: { status },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/rooms");
+  revalidatePath(`/rooms/${roomId}`);
+  return success(undefined);
+}
+
 export async function addRoomBed(
   propertyId: string,
   input: RoomBedInput,
@@ -103,6 +135,28 @@ export async function addRoomBed(
 
   revalidatePath(`/rooms/${v.roomId}`);
   return success({ id: bed.id });
+}
+
+export async function updateBedStatus(
+  propertyId: string,
+  bedId: string,
+  roomId: string,
+  status: "vacant" | "maintenance" | "occupied",
+): Promise<ActionResult<void>> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  if (!["vacant", "maintenance", "occupied"].includes(status)) {
+    return fail("invalidInput");
+  }
+
+  await db
+    .update(roomBeds)
+    .set({ status })
+    .where(and(eq(roomBeds.propertyId, propertyId), eq(roomBeds.id, bedId)));
+
+  revalidatePath(`/rooms/${roomId}`);
+  return success(undefined);
 }
 
 export async function deleteRoomBed(

@@ -9,6 +9,7 @@ import { AssetManager } from "@/features/assets/components/asset-manager";
 import { EndContractButton } from "@/features/contracts/components/end-contract-button";
 import { MeterSheet } from "@/features/invoices/components/meter-sheet";
 import { listInvoices } from "@/features/invoices/queries";
+import { RoomStatusDropdown } from "@/features/rooms/components/room-status-dropdown";
 import { getRoomTypeLabel } from "@/features/rooms/constants";
 import { getRoomDetail } from "@/features/rooms/queries";
 import { TenantAccountCard } from "@/features/tenants/components/tenant-account-card";
@@ -50,30 +51,38 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
     <PageTransition className="mx-auto max-w-2xl space-y-8 pb-12 lg:pb-8">
       {/* Top Header */}
       <header className="space-y-1">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{room.name}</h1>
             {room.roomType ? (
               <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
                 {getRoomTypeLabel(room.roomType)}
               </span>
             ) : null}
+            <RoomStatusDropdown
+              propertyId={propertyId}
+              roomId={room.id}
+              currentStatus={room.status as "vacant" | "occupied" | "maintenance"}
+              hasActiveContract={!!contract}
+            />
           </div>
 
-          {contract ? (
-            <EndContractButton propertyId={propertyId} contractId={contract.id} today={today} />
-          ) : (
-            <Link
-              href={`/contracts/new?roomId=${room.id}`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              <Plus size={14} />
-              <span>{t("contracts.create")}</span>
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            {contract ? (
+              <EndContractButton propertyId={propertyId} contractId={contract.id} today={today} />
+            ) : (
+              <Link
+                href={`/contracts/new?roomId=${room.id}`}
+                className="inline-flex h-9 items-center gap-1.5 rounded-[8px] bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+              >
+                <Plus size={14} />
+                <span>{t("contracts.create")}</span>
+              </Link>
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          {primaryTenant ? `${primaryTenant} · đang thuê` : "Chưa có người thuê · Còn trống"}
+          {primaryTenant ? `${primaryTenant} · đang thuê` : "Chưa có người thuê"}
           {room.area ? ` · ${room.area}m²` : ""}
           {room.floor ? ` · Tầng ${room.floor}` : ""}
         </p>

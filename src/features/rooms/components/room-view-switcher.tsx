@@ -156,11 +156,11 @@ export function RoomViewSwitcher({ rows, today, defaultView = "grid" }: Props) {
                   let statusLabel = "Còn trống";
 
                   if (r.status === "maintenance") {
-                    cardToneBorder = "border-rose-300 dark:border-rose-900/70";
-                    headerToneBg = "bg-rose-50/70 dark:bg-rose-950/30";
+                    cardToneBorder = "border-amber-300 dark:border-amber-900/70";
+                    headerToneBg = "bg-amber-50/70 dark:bg-amber-950/30";
                     statusBadgeColor =
-                      "bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200";
-                    statusLabel = "Đang sửa";
+                      "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200";
+                    statusLabel = "Đang sửa chữa";
                   } else if (r.isExpiringSoon) {
                     cardToneBorder = "border-amber-400 dark:border-amber-800";
                     headerToneBg = "bg-amber-50/80 dark:bg-amber-950/30";
