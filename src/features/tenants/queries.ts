@@ -33,6 +33,7 @@ export async function listTenants(propertyId: string) {
       tenantId: contractTenants.tenantId,
       roomId: contracts.roomId,
       roomName: rooms.name,
+      floor: rooms.floor,
       contractId: contracts.id,
       startDate: contracts.startDate,
       endDate: contracts.endDate,
@@ -54,18 +55,37 @@ export async function listTenants(propertyId: string) {
     .where(eq(properties.id, propertyId))
     .limit(1);
 
-  return tenantRows.map((t) => {
+  const result = tenantRows.map((t) => {
     const active = activeContracts.find((c) => c.tenantId === t.id);
     return {
       ...t,
       roomId: active?.roomId ?? null,
       roomName: active?.roomName ?? null,
+      floor: active?.floor ?? null,
       contractId: active?.contractId ?? null,
       startDate: active?.startDate ?? null,
       endDate: active?.endDate ?? null,
       propertyName: property?.name ?? "Nhà trọ",
       propertyAddress: property?.address ?? "",
     };
+  });
+
+  // Sắp xếp lại theo tầng (Tầng 1 -> Tầng 2...), sau đó theo phòng, rồi đến họ tên
+  return result.sort((a, b) => {
+    // Nếu cả 2 đều có phòng
+    if (a.roomName && b.roomName) {
+      const floorA = a.floor ?? 999;
+      const floorB = b.floor ?? 999;
+      if (floorA !== floorB) return floorA - floorB;
+      const roomComp = a.roomName.localeCompare(b.roomName, "vi", { numeric: true });
+      if (roomComp !== 0) return roomComp;
+      return a.fullName.localeCompare(b.fullName, "vi");
+    }
+    // Người có phòng xếp trước người chưa gán phòng
+    if (a.roomName && !b.roomName) return -1;
+    if (!a.roomName && b.roomName) return 1;
+    // Cả 2 chưa có phòng xếp theo tên
+    return a.fullName.localeCompare(b.fullName, "vi");
   });
 }
 
