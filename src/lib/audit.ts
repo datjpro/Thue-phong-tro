@@ -22,6 +22,7 @@ export type AuditAction =
   | "delete_service"
   | "create_maintenance"
   | "update_maintenance_status"
+  | "delete_maintenance"
   | "create_room_asset"
   | "save_asset_handover"
   | "change_password";

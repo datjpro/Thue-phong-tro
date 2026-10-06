@@ -36,6 +36,7 @@
     "open": "Reported",
     "in_progress": "In progress",
     "done": "Done",
+    "rejected": "Rejected",
     "changeStatus": "Change status"
   },
   "errors": {

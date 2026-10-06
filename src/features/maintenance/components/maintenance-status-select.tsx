@@ -13,7 +13,7 @@ export function MaintenanceStatusSelect({
 }: {
   propertyId: string;
   id: string;
-  status: "open" | "in_progress" | "done";
+  status: "open" | "in_progress" | "done" | "rejected";
 }) {
   const t = useTranslations("status");
   const { submit, pending } = useSubmit(
@@ -26,11 +26,18 @@ export function MaintenanceStatusSelect({
       value={status}
       disabled={pending}
       className="w-auto min-w-40"
-      onChange={(e) => submit({ id, status: e.target.value as MaintenanceStatusInput["status"] })}
+      onChange={(e) =>
+        submit({
+          id,
+          status: e.target.value as MaintenanceStatusInput["status"],
+          cost: 0,
+        })
+      }
     >
       <option value="open">{t("open")}</option>
       <option value="in_progress">{t("in_progress")}</option>
       <option value="done">{t("done")}</option>
+      <option value="rejected">{t("rejected")}</option>
     </Select>
   );
 }

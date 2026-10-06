@@ -36,6 +36,7 @@
     "open": "Mới báo",
     "in_progress": "Đang xử lý",
     "done": "Đã xong",
+    "rejected": "Từ chối",
     "changeStatus": "Đổi tình trạng"
   },
   "errors": {

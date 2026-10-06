@@ -48,6 +48,9 @@ export async function createMaintenance(
       roomId: v.roomId,
       title: v.title,
       description: v.description || null,
+      category: v.category,
+      priority: v.priority,
+      isAnonymous: v.isAnonymous,
     })
     .returning({ id: maintenanceRequests.id });
 
@@ -57,7 +60,7 @@ export async function createMaintenance(
     action: "create_maintenance",
     resourceType: "maintenance",
     resourceId: created.id,
-    details: { roomId: v.roomId, title: v.title },
+    details: { roomId: v.roomId, title: v.title, category: v.category, priority: v.priority },
   });
 
   revalidatePath("/maintenance");
@@ -81,6 +84,8 @@ export async function updateMaintenanceStatus(
     .update(maintenanceRequests)
     .set({
       status: parsed.data.status,
+      cost: parsed.data.cost ?? 0,
+      response: parsed.data.response || null,
       completedAt: parsed.data.status === "done" ? new Date() : null,
     })
     .where(
@@ -96,7 +101,27 @@ export async function updateMaintenanceStatus(
     action: "update_maintenance_status",
     resourceType: "maintenance",
     resourceId: parsed.data.id,
-    details: { status: parsed.data.status },
+    details: { status: parsed.data.status, cost: parsed.data.cost },
+  });
+
+  revalidatePath("/maintenance");
+  return success(undefined);
+}
+
+export async function deleteMaintenance(propertyId: string, id: string): Promise<ActionResult> {
+  const ctx = await requireContext();
+  if (!(await assertManager(ctx.userId, propertyId))) return fail("forbidden");
+
+  await db
+    .delete(maintenanceRequests)
+    .where(and(eq(maintenanceRequests.propertyId, propertyId), eq(maintenanceRequests.id, id)));
+
+  await logAuditEvent({
+    propertyId,
+    userId: ctx.userId,
+    action: "delete_maintenance",
+    resourceType: "maintenance",
+    resourceId: id,
   });
 
   revalidatePath("/maintenance");

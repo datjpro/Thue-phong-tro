@@ -36,6 +36,13 @@
       "when": 1791260000000,
       "tag": "0004_owner_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791270000000,
+      "tag": "0005_feedback_enhancement",
+      "breakpoints": true
     }
   ]
 }
