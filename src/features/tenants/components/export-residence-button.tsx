@@ -39,11 +39,11 @@ export function ExportResidenceButton({ tenants }: Props) {
         `"${(t.fullName || "").replace(/"/g, '""')}"`,
         `"${t.birthDate ? formatDate(t.birthDate) : ""}"`,
         `"${genderLabel}"`,
-        `"${(t.idNumber || "").replace(/"/g, '""')}"`,
+        t.idNumber ? `="${t.idNumber.replace(/"/g, '""')}"` : `""`,
         `"${(t.hometown || "").replace(/"/g, '""')}"`,
         `"${(t.workplace || "").replace(/"/g, '""')}"`,
         `"${(t.licensePlate || "").replace(/"/g, '""')}"`,
-        `"${(t.phone || "").replace(/"/g, '""')}"`,
+        t.phone ? `="${t.phone.replace(/"/g, '""')}"` : `""`,
         `"${(t.roomName ? `Phòng ${t.roomName}` : "Chưa gắn phòng").replace(/"/g, '""')}"`,
         `"${t.startDate ? formatDate(t.startDate) : ""}"`,
       ];

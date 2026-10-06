@@ -230,7 +230,7 @@ export function InvoicesManager({
         `"${i.roomName}"`,
         `"${i.floor ?? ""}"`,
         `"${i.tenantName ?? ""}"`,
-        `"${i.tenantPhone ?? ""}"`,
+        i.tenantPhone ? `="${i.tenantPhone.replace(/"/g, '""')}"` : `""`,
         i.roomFee,
         i.electricUsage,
         i.electricAmount,
