@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
+import { BirthDatePicker } from "@/components/shared/birth-date-picker";
 import { Field } from "@/components/shared/field";
 import { NumberInput } from "@/components/shared/number-input";
 import { Button } from "@/components/ui/button";
@@ -132,7 +133,15 @@ export function SettingsForm({
           </Field>
 
           <Field id="ownerBirthDate" label="Ngày sinh">
-            {(p) => <Input id={p.id} type="date" {...form.register("ownerBirthDate")} />}
+            {(p) => (
+              <Controller
+                control={form.control}
+                name="ownerBirthDate"
+                render={({ field }) => (
+                  <BirthDatePicker id={p.id} value={field.value} onChange={field.onChange} />
+                )}
+              />
+            )}
           </Field>
         </div>
 
@@ -150,7 +159,22 @@ export function SettingsForm({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field id="ownerIdDate" label="Ngày cấp CCCD">
-            {(p) => <Input id={p.id} type="date" {...form.register("ownerIdDate")} />}
+            {(p) => (
+              <Controller
+                control={form.control}
+                name="ownerIdDate"
+                render={({ field }) => (
+                  <BirthDatePicker
+                    id={p.id}
+                    value={field.value}
+                    onChange={field.onChange}
+                    showAge={false}
+                    minYear={1990}
+                    placeholder={{ day: "Ngày", month: "Tháng", year: "Năm" }}
+                  />
+                )}
+              />
+            )}
           </Field>
 
           <Field id="ownerIdPlace" label="Nơi cấp CCCD">

@@ -58,3 +58,19 @@ export function dueDateFor(period: string, dueDay: number): string {
   const day = Math.min(dueDay, daysInPeriod(`${ny}-${String(nm).padStart(2, "0")}`));
   return `${ny}-${String(nm).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
+
+/** Tính tuổi từ ngày sinh (YYYY-MM-DD hoặc Date) */
+export function calculateAge(birthDate: string | Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const str = typeof birthDate === "string" ? birthDate.slice(0, 10) : todayVn(birthDate);
+  const parts = str.split("-").map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+  const [birthYear, birthMonth, birthDay] = parts;
+  const [todayYear, todayMonth, todayDay] = todayVn().split("-").map(Number);
+
+  let age = todayYear - birthYear;
+  if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) {
+    age--;
+  }
+  return age >= 0 ? age : null;
+}

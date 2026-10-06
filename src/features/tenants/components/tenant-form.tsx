@@ -3,7 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { BirthDatePicker } from "@/components/shared/birth-date-picker";
 import { Field } from "@/components/shared/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,7 +107,15 @@ export function TenantForm({ propertyId }: { propertyId: string }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field id="birthDate" label="Ngày sinh">
-          {(p) => <Input id={p.id} type="date" {...form.register("birthDate")} />}
+          {(p) => (
+            <Controller
+              control={form.control}
+              name="birthDate"
+              render={({ field }) => (
+                <BirthDatePicker id={p.id} value={field.value} onChange={field.onChange} />
+              )}
+            />
+          )}
         </Field>
 
         <Field id="gender" label="Giới tính">

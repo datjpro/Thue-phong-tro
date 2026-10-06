@@ -1,5 +1,6 @@
 import {
   Building2,
+  Cake,
   Car,
   CreditCard,
   GraduationCap,
@@ -17,6 +18,7 @@ import { ExportResidenceButton } from "@/features/tenants/components/export-resi
 import { TenantForm } from "@/features/tenants/components/tenant-form";
 import { TenantRowAccountButton } from "@/features/tenants/components/tenant-row-account-button";
 import { listTenants } from "@/features/tenants/queries";
+import { calculateAge, formatDate } from "@/lib/dates";
 import { requireContext } from "@/lib/session";
 
 export default async function TenantsPage() {
@@ -119,6 +121,19 @@ export default async function TenantsPage() {
                                   >
                                     {r.phone}
                                   </a>
+                                </span>
+                              ) : null}
+                              {r.birthDate ? (
+                                <span className="flex items-center gap-1 font-mono">
+                                  <Cake size={12} className="text-pink-500/80 shrink-0" />
+                                  <span>
+                                    {formatDate(r.birthDate)}
+                                    {calculateAge(r.birthDate) !== null ? (
+                                      <span className="text-[11px] text-muted-foreground/80 font-sans ml-0.5">
+                                        ({calculateAge(r.birthDate)}t)
+                                      </span>
+                                    ) : null}
+                                  </span>
                                 </span>
                               ) : null}
                               {r.idNumber ? (
