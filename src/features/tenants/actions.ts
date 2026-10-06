@@ -2,11 +2,11 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { hashPassword } from "better-auth/crypto";
 import { db } from "@/db";
-import { propertyMembers, rooms, tenants, user } from "@/db/schema";
+import { account, propertyMembers, rooms, tenants, user } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
 import { logAuditEvent } from "@/lib/audit";
-import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { assertMember, requireContext } from "@/lib/session";
 import { type TenantInput, tenantSchema } from "./schemas";
@@ -147,18 +147,40 @@ export async function provisionTenantAccount(
   const email = formatTenantEmail(room.name);
   const password = tenant.idNumber.trim();
 
-  // 3. Tìm hoặc tạo user qua Better Auth
+  // 3. Tìm hoặc tạo user trực tiếp mà KHÔNG ghi đè cookie phiên của chủ trọ
   let [accountUser] = await db.select().from(user).where(eq(user.email, email)).limit(1);
+  const hashedPassword = await hashPassword(password);
 
   if (!accountUser) {
-    await auth.api.signUpEmail({
-      body: {
-        email,
-        password,
-        name: tenant.fullName,
-      },
+    const newUserId = crypto.randomUUID();
+    await db.transaction(async (tx) => {
+      const [createdUser] = await tx
+        .insert(user)
+        .values({
+          id: newUserId,
+          name: tenant.fullName,
+          email,
+          emailVerified: true,
+        })
+        .returning();
+
+      await tx.insert(account).values({
+        id: crypto.randomUUID(),
+        accountId: newUserId,
+        providerId: "credential",
+        userId: newUserId,
+        password: hashedPassword,
+      });
+
+      accountUser = createdUser;
     });
-    [accountUser] = await db.select().from(user).where(eq(user.email, email)).limit(1);
+  } else {
+    // Nếu tài khoản đã tồn tại, đồng bộ mật khẩu CCCD mới và họ tên
+    await db
+      .update(account)
+      .set({ password: hashedPassword })
+      .where(eq(account.userId, accountUser.id));
+    await db.update(user).set({ name: tenant.fullName }).where(eq(user.id, accountUser.id));
   }
 
   if (accountUser) {
