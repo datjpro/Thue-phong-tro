@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { invoiceDisplayStatus } from "@/lib/invoice-status";
 import { formatMoney } from "@/lib/money";
 import { cn } from "@/lib/utils";
+import { getRoomTypeLabel } from "../constants";
 
 export type RoomRow = {
   id: string;
@@ -15,7 +16,7 @@ export type RoomRow = {
   floor: number | null;
   area: number | null;
   rentPrice: number;
-  roomType: "standard" | "dormitory" | "sleepbox";
+  roomType: string;
   status: "vacant" | "occupied" | "maintenance";
   tenantName: string | null;
   hasActiveContract: boolean;
@@ -190,9 +191,7 @@ export function RoomViewSwitcher({ rows, today, defaultView = "grid" }: Props) {
                               {r.name}
                             </span>
                             <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                              {r.roomType === "dormitory" && "KTX"}
-                              {r.roomType === "sleepbox" && "Sleepbox"}
-                              {r.roomType === "standard" && "Tiêu chuẩn"}
+                              <span>{getRoomTypeLabel(r.roomType)}</span>
                               {r.area ? ` · ${r.area}m²` : ""}
                             </div>
                           </div>

@@ -9,6 +9,7 @@ import { AssetManager } from "@/features/assets/components/asset-manager";
 import { EndContractButton } from "@/features/contracts/components/end-contract-button";
 import { MeterSheet } from "@/features/invoices/components/meter-sheet";
 import { listInvoices } from "@/features/invoices/queries";
+import { getRoomTypeLabel } from "@/features/rooms/constants";
 import { getRoomDetail } from "@/features/rooms/queries";
 import { TenantAccountCard } from "@/features/tenants/components/tenant-account-card";
 import { currentPeriod, formatDate, formatPeriodShort, todayVn } from "@/lib/dates";
@@ -42,9 +43,9 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ id:
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">{room.name}</h1>
-            {room.roomType !== "standard" ? (
+            {room.roomType ? (
               <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
-                {room.roomType === "dormitory" ? "KTX" : "Sleepbox"}
+                {getRoomTypeLabel(room.roomType)}
               </span>
             ) : null}
           </div>

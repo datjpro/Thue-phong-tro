@@ -8,6 +8,7 @@ import { Field } from "@/components/shared/field";
 import { NumberInput } from "@/components/shared/number-input";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { getRoomTypeLabel } from "@/features/rooms/constants";
 import { useSubmit } from "@/lib/use-submit";
 import { createContract } from "../actions";
 import { type ContractInput, contractSchema } from "../schemas";
@@ -84,7 +85,7 @@ export function ContractForm({
           >
             {rooms.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.name} {r.roomType && r.roomType !== "standard" ? `(${r.roomType})` : ""}
+                {r.name} {r.roomType ? `(${getRoomTypeLabel(r.roomType)})` : ""}
               </option>
             ))}
           </Select>

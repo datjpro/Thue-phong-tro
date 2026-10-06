@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { roomBeds, rooms } from "@/db/schema";
+import { roomAssets, roomBeds, rooms } from "@/db/schema";
 import { type ActionResult, fail, success } from "@/lib/action";
 import { logAuditEvent } from "@/lib/audit";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -24,6 +24,22 @@ export async function createRoom(
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
 
+  // Kiểm tra trùng tên phòng trong cùng nhà trọ
+  const [existing] = await db
+    .select({ id: rooms.id, name: rooms.name })
+    .from(rooms)
+    .where(
+      and(
+        eq(rooms.propertyId, propertyId),
+        sql`lower(trim(${rooms.name})) = lower(trim(${v.name}))`,
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    return fail("duplicateRoomName");
+  }
+
   const [row] = await db
     .insert(rooms)
     .values({
@@ -36,17 +52,17 @@ export async function createRoom(
     })
     .returning({ id: rooms.id });
 
-  // Tự động tạo giường nếu là KTX hoặc Sleepbox
-  const bedCount = v.bedCount ?? 4;
-  if (v.roomType !== "standard" && bedCount > 0) {
-    const bedValues = Array.from({ length: bedCount }, (_, i) => ({
+  // Tự động lưu danh sách trang thiết bị / nội thất đã tích chọn vào bảng room_assets
+  if (v.selectedAssets && v.selectedAssets.length > 0) {
+    const assetValues = v.selectedAssets.map((a) => ({
       propertyId,
       roomId: row.id,
-      name: v.roomType === "sleepbox" ? `Box ${i + 1}` : `Giường ${i + 1}`,
-      rentPrice: Math.round(v.rentPrice / bedCount),
-      status: "vacant" as const,
+      name: a.name,
+      category: a.category,
+      quantity: a.quantity > 0 ? a.quantity : 1,
+      condition: "good" as const,
     }));
-    await db.insert(roomBeds).values(bedValues);
+    await db.insert(roomAssets).values(assetValues);
   }
 
   await logAuditEvent({

@@ -207,5 +207,14 @@ export async function getRoomDetail(propertyId: string, roomId: string, period: 
   };
 }
 
+export async function listRoomNames(propertyId: string) {
+  const rows = await db
+    .select({ id: rooms.id, name: rooms.name, floor: rooms.floor })
+    .from(rooms)
+    .where(eq(rooms.propertyId, propertyId))
+    .orderBy(rooms.name);
+  return rows;
+}
+
 export type RoomDetail = NonNullable<Awaited<ReturnType<typeof getRoomDetail>>>;
 export type RoomListRow = Awaited<ReturnType<typeof listRooms>>[number];

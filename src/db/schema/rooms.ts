@@ -10,9 +10,7 @@ export const rooms = pgTable("rooms", {
   floor: integer("floor"),
   area: integer("area"), // m²
   rentPrice: integer("rent_price").notNull(),
-  roomType: text("room_type", { enum: ["standard", "dormitory", "sleepbox"] })
-    .notNull()
-    .default("standard"),
+  roomType: text("room_type").notNull().default("standard"),
   status: text("status", { enum: ["vacant", "occupied", "maintenance"] })
     .notNull()
     .default("vacant"),

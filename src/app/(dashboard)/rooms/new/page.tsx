@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageTransition } from "@/components/shared/page-transition";
 import { RoomForm } from "@/features/rooms/components/room-form";
+import { listRoomNames } from "@/features/rooms/queries";
 import { requireContext } from "@/lib/session";
 
 export default async function NewRoomPage() {
@@ -13,6 +14,7 @@ export default async function NewRoomPage() {
 
   const { propertyId } = ctx;
   const t = await getTranslations("rooms");
+  const existingRooms = await listRoomNames(propertyId);
 
   return (
     <PageTransition className="space-y-6">
@@ -27,7 +29,7 @@ export default async function NewRoomPage() {
       </div>
 
       <PageHeader title={t("add")} description={t("addHint")} />
-      <RoomForm propertyId={propertyId} />
+      <RoomForm propertyId={propertyId} existingRooms={existingRooms} />
     </PageTransition>
   );
 }

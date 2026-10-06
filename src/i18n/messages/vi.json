@@ -50,6 +50,7 @@
     "invoiceExists": "Kỳ này đã có hóa đơn cho phòng này.",
     "readingLower": "Chỉ số mới nhỏ hơn chỉ số cũ. Kiểm tra lại hoặc chọn 'Thay đồng hồ'.",
     "overpay": "Số tiền lớn hơn phần còn phải thu. Giảm số tiền xuống.",
+    "duplicateRoomName": "Tên phòng này đã tồn tại trong nhà trọ. Vui lòng chọn số phòng khác.",
     "rateLimitExceeded": "Bạn đang thao tác quá nhanh. Vui lòng đợi giây lát rồi thử lại.",
     "pageTitle": "Không tải được trang này",
     "pageDesc": "Có lỗi khi lấy dữ liệu. Thử tải lại; nếu vẫn lỗi, kiểm tra kết nối cơ sở dữ liệu.",
